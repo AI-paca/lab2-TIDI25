@@ -23,6 +23,10 @@ public:
     virtual void processInput(int x, int y) = 0;
     virtual std::vector<void*> getRenderData() = 0;
     virtual void update() = 0;
+    virtual std::vector<void*> getBalls() = 0;
+    
+    // Новый метод для передачи массива в Python
+    virtual int getBallsAsArray(void* balls, int max_count) = 0;
 };
 
 #endif // INTERFACES_H

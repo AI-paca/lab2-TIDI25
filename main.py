@@ -1,51 +1,47 @@
 import pygame
 import sys
 import time
+import ctypes
 
 # ==========================================
-# ЗАГЛУШКА
-# import my_cpp_engine as cpp_engine
+# ПРОСТОЙ ДОСТУП К C++ ДАННЫМ
 # ==========================================
 
-class FakeCppEngine:
-    def __init__(self):
-        # Типа данные внутри C++
-        self.ball_x = 400.0
-        self.ball_y = 300.0
-        self.velocity_x = 2.0
-        self.ball_radius = 20
-        self.color_type = 1 # 1 - красный, 2 - синий
-        self.current_step = 0
+# Загрузить C++ библиотеку
+libgame = ctypes.CDLL('./libgame.so')
 
-    # Метод update(), делает указанное количество шагов за раз (БЕЗ FOR!)
-    def update(self, steps_count):
-        # Фиксированный шаг = предсказуемая физика
-        fixed_step = 1.0 / 60.0  # Шаг = 1/60 секунды игры
-        
-        # НИКАКОГО FOR! Просто умножаем на количество шагов
-        self.ball_x += self.velocity_x * fixed_step * steps_count * 100  # ← * steps_count вместо loop!
-        
-        # Простая проверка границ (типа физика отскока)
-        if self.ball_x > 800 or self.ball_x < 0:
-            self.velocity_x *= -1
-        
-        self.current_step += steps_count
+# Определить структуру Ball для Python (как в C++)
+class Ball(ctypes.Structure):
+    _fields_ = [
+        ("position", ctypes.c_int * 2),  # pair<int, int>
+        ("velocity", ctypes.c_int * 2),  # pair<int, int>
+        ("radius", ctypes.c_int),
+        ("color", ctypes.c_int)
+    ]
 
-    # Метод, чтобы отдать координаты Питону
-    def get_render_data(self):
-        # Возвращаем список кортежей: (x, y, radius, type)
-        return [(self.ball_x, self.ball_y, self.ball_radius, self.color_type)]
+# Функция для получения данных из C++ через массив
+def get_cpp_ball_data():
+    # Создать массив для 10 шаров
+    balls_array = (Ball * 10)()
 
-    # Обработка клика (симуляция метода C++)
-    def handle_click(self, x, y):
-        # Допустим, клик меняет цвет и телепортирует мяч
-        self.ball_x = x
-        self.ball_y = y
-        self.color_type = 2 if self.color_type == 1 else 1
+    # Вызвать C++ функцию для получения данных
+    count = libgame.get_balls_array(balls_array, 10)
 
-# ==========================================
-# КОНЕЦ ЗАГЛУШКИ
-# ==========================================
+    # Преобразовать в список кортежей для Python
+    result = []
+    for i in range(count):
+        ball = balls_array[i]
+        result.append((ball.position[0], ball.position[1], ball.radius, ball.color))
+
+    # Вывести данные в консоль для проверки
+    print(f"C++ вернул {count} шаров:")
+    for i, obj in enumerate(result):
+        print(f"  Шар {i}: x={obj[0]}, y={obj[1]}, radius={obj[2]}, color={obj[3]}")
+
+    return result
+
+# Инициализировать C++ контроллер
+libgame.create_game_controller(60)
 
 # ==========================================
 # НОВЫЙ КОД С ПРАВИЛЬНОЙ СИНХРОНИЗАЦИЕЙ
@@ -70,7 +66,22 @@ GREEN = (50, 255, 50)
 YELLOW = (255, 255, 50)
 
 # 2. Инициализация движка
-engine = FakeCppEngine()
+class SimpleEngine:
+    def __init__(self):
+        self.current_step = 0
+        
+    def update(self, steps_count):
+        self.current_step += steps_count
+        
+    def get_render_data(self):
+        # Получаем данные из C++ через массив
+        return get_cpp_ball_data()
+    
+    def handle_click(self, x, y):
+        # Телепортируем шар
+        pass  # Не используется, данные из C++
+
+engine = SimpleEngine()
 
 # 3. Переменные для синхронизации
 running = True
@@ -79,15 +90,15 @@ frame_count = 0
 fps_update_time = pygame.time.get_ticks()
 current_fps = 0
 
-# 4. НАСТРОЙКА FPS (можно менять здесь)
-TARGET_FPS = 40  # ← ИЗМЕНИТЕ ЭТО ЗНАЧЕНИЕ ДЛЯ ДРУГОГО FPS
-MS_PER_STEP = 1000 // TARGET_FPS  # 16ms для 60 FPS, 33ms для 30 FPS и т.д.
+# 4. НАСТРОЙКА FPS
+TARGET_FPS = 40
+MS_PER_STEP = 1000 // TARGET_FPS
 
 # АВТО РАСЧЕТ FPS (ЗАКОММЕНТИРОВАНО)
 # TARGET_FPS = clock.get_fps()  # <- Распакуйте если нужен авто-расчет
 # MS_PER_STEP = 1000 // int(TARGET_FPS) if TARGET_FPS > 0 else 16
 
-# 4. Главный игровой цикл с ПРАВИЛЬНОЙ catch-up синхронизацией
+
 while running:
     # === ОБРАБОТКА СОБЫТИЙ ===
     for event in pygame.event.get():
@@ -97,41 +108,33 @@ while running:
             x, y = event.pos
             engine.handle_click(x, y)
 
-    # === ПРАВИЛЬНАЯ CATCH-UP СИНХРОНИЗАЦИЯ ===
+    # === СИНХРОНИЗАЦИЯ ===
     current_time = pygame.time.get_ticks()
     time_since_update = current_time - last_update_time
     
     if time_since_update >= MS_PER_STEP:
-        # СКОЛЬКО ШАГОВ ПРОПУСТИЛИ?
         steps_needed = int(time_since_update // MS_PER_STEP)
-        
-        # ПРАВИЛЬНО: ОДИН вызов с параметром!
-        engine.update(steps_needed)  # ← БЕЗ FOR!
-        
+        engine.update(steps_needed)
         last_update_time += steps_needed * MS_PER_STEP
         
-        # Считаем FPS для информации
         frame_count += 1
-        if current_time - fps_update_time >= 1000:  # Каждую секунду
+        if current_time - fps_update_time >= 1000:
             current_fps = frame_count
             frame_count = 0
             fps_update_time = current_time
-            print(f"Real FPS: {current_fps} | Steps: {engine.current_step}")
 
     # === ОТРИСОВКА ===
-    # 1. Очистить экран
     screen.fill(BLACK)
 
-    # 2. Забрать данные у C++
+    # Получаем данные из C++ через массив
     objects = engine.get_render_data()
 
-    # 3. Нарисовать каждый объект
     for obj in objects:
         px, py, radius, p_type = obj
-        color = RED if p_type == 1 else BLUE
+        color = WHITE if p_type == 3 else RED if p_type == 0 else YELLOW if p_type == 1 else BLACK
         pygame.draw.circle(screen, color, (int(px), int(py)), radius)
 
-    # 4. Показать настройки FPS
+    # Показать FPS
     fps_text = font.render(f"Real FPS: {current_fps}", True, WHITE)
     screen.blit(fps_text, (10, 10))
     
@@ -141,42 +144,17 @@ while running:
     ms_text = font.render(f"Step: {MS_PER_STEP}ms", True, YELLOW)
     screen.blit(ms_text, (10, 90))
 
-    # 5. Показать статус синхронизации
-    if time_since_update < MS_PER_STEP:
-        status_color = GREEN
-        status_text = f"CATCH-UP: OK"
-        steps_info = f"Total steps: {engine.current_step}"
-    else:
-        status_color = RED
-        status_text = f"CATCH-UP: LAG ({time_since_update}ms)"
-        steps_info = f"Steps needed: {int(time_since_update // MS_PER_STEP)}"
+    status_text = f"CATCH-UP: OK - C++ data loaded"
+    steps_info = f"Balls: {len(objects)}"
     
-    status_surface = font.render(status_text, True, status_color)
+    status_surface = font.render(status_text, True, GREEN)
     screen.blit(status_surface, (10, 130))
     
     steps_surface = font.render(steps_info, True, WHITE)
     screen.blit(steps_surface, (10, 170))
 
-    # 6. Показать кадр
     pygame.display.flip()
-
-    # === ОГРАНИЧЕНИЕ FPS ===
     clock.tick(TARGET_FPS)
 
 pygame.quit()
 sys.exit()
-
-# ==========================================
-# ПОЯСНЕНИЕ ПРАВИЛЬНОЙ CATCH-UP ЛОГИКИ:
-# 
-# 1. TARGET_FPS = 60  # ← Меняйте это значение!
-# 2. MS_PER_STEP = 1000 // 60 = 16ms
-# 3. Если прошло 50ms:
-#    - steps_needed = 50 // 16 = 3 шага
-#    - ОДИН вызов: engine.update(3)
-#    - C++ делает: position += velocity * delta * 3 (БЕЗ FOR!)
-# 4. Если прошло 10ms:
-#    - steps_needed = 10 // 16 = 0 шагов
-#    - Ждем дальше
-# 5. Результат: НЕТ overhead от множественных вызовов, физика стабильная
-# ==========================================

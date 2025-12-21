@@ -6,12 +6,12 @@ Game::Game(int aSteps) {
     steps = aSteps;
     balls.reserve(10); // резервируем место шаров
 
-    //balls.push_back(std::make_unique<Ball>(std::pair<int, int>(100, 100), std::pair<int, int>(0, 0), 10, Color::WHITE)); // белый шар
-    balls.push_back(std::make_unique<Ball>()); // добавляем белый шар
-    balls[1]->position = {100, 100}; // задаем позицию белого шара
-    balls[1]->velocity = {0, 0}; // начальная скорость
-    balls[1]->radius = 10; // радиус шара
-    balls[1]->color = Color::WHITE; // цвет шара
+    // Создаем белый шар
+    balls.push_back(std::make_unique<Ball>());
+    balls[0]->position = {100, 100}; // задаем позицию белого шара
+    balls[0]->velocity = {0, 0}; // начальная скорость
+    balls[0]->radius = 10; // радиус шара
+    balls[0]->color = Color::WHITE; // цвет шара
     
     cue = std::make_unique<Cue>();
     table = std::make_unique<Table>();
@@ -45,4 +45,26 @@ void Game::strikeCueAtBall(Cue& cue, Ball& ball) {
 
 void Game::transferImpulse(Cue& cue, Ball& ball) {
     // передача импульса от кия к белому шару //записываем дельта х и дельта у в скорость шара
+}
+
+// Метод для копирования данных из Ball в массив
+int Game::getBallsAsArray(Ball* balls_array, int max_count) const {
+    if (!balls_array || max_count <= 0) {
+        return 0;
+    }
+
+    // Получить шары из контейнера
+    int count = std::min((int)balls.size(), max_count);
+
+    // Заполнить массив данными из каждого шара
+    for (int i = 0; i < count; i++) {
+        if (balls[i]) {
+            balls_array[i].position = balls[i]->position;
+            balls_array[i].velocity = balls[i]->velocity;
+            balls_array[i].radius = balls[i]->radius;
+            balls_array[i].color = balls[i]->color;
+        }
+    }
+
+    return count;
 }

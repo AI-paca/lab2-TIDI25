@@ -16,8 +16,9 @@ public:
     std::vector<void*> getRenderData() override;
     void update() override;
 
- 
-    std::vector<void*> getBalls();
+    
+    std::vector<void*> getBalls() override;
+    int getBallsAsArray(void* balls, int max_count) override;
 
 private:
     // Указатель на игровой объект

@@ -43,6 +43,11 @@ game(time) //если шагов нет, то мы считаем кадры п�
 шаг 3 - всмонить о сроках сдачи, забыть про идею, оставить 9-ball с багами 
 ---
 
+pip install pygame
+g++ -shared -fPIC -o libgame.so controller.cc game.cc  
+python main.py
+
+---
 ![lab2.png](diagrams/lab2.png)
 ---
 ТЗ:

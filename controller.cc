@@ -61,10 +61,48 @@ std::vector<void*> GameController::getBalls() {
 // }
 
 /////////////////////////////////////////////////
-    
+
+// vector<void*> в массив для Python
+int GameController::getBallsAsArray(void* balls, int max_count) {
+    if (!balls || max_count <= 0) {
+        return 0;
+    }
+    Game::Ball* balls_array = static_cast<Game::Ball*>(balls);
+    return game->getBallsAsArray(balls_array, max_count);
+}
+
+/////////////////////////////////////////////////
+
 void GameController::update() {
     // Обновление состояния
     if (game) {
         game->updateBallCollisions();
     }
+}
+
+// ==========================================
+// EXTERN C: ЭКСПОРТ ДЛЯ PYTHON
+// ==========================================
+extern "C" {
+
+// Глобальный контроллер
+static GameController* g_controller = nullptr;
+
+extern "C" void create_game_controller(int steps) {
+    if (g_controller) {
+        delete g_controller;
+    }
+    g_controller = new GameController(steps);
+    g_controller->start();
+}
+
+extern "C" int get_balls_array(void* balls, int max_count) {
+    if (!g_controller || !balls || max_count <= 0) {
+        return 0;
+    }
+
+    // Использовать метод из GameController
+    return g_controller->getBallsAsArray(balls, max_count);
+}
+
 }

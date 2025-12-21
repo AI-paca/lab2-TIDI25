@@ -3,23 +3,24 @@
 
 #include <vector>
 #include <memory>
-#include <utility> // for std::pair
+#include <utility>
+
+class GameController; // Forward declaration; данный класс нужен питону для получения данных из структуры 
+// (возможно я его перепишу на интерфейс)
 
 class Game {
 
-protected:
+public:
     enum Color { RED, YELLOW, BLACK, WHITE }; // цвета шаров
 
-    // Вложенный класс Ball
-    class Ball {
-    public:
+    struct Ball {
         std::pair<int, int> position; // позиция/центр шара {x, y}
         std::pair<int, int> velocity; // вектор скорости {speedX, speedY}
         int radius;
         Color color; //цвет шара
     };
 
-    // Вложенный класс Cue
+protected:
     class Cue {
     public:
         std::pair<int, int> position; // позиция кия {x, y}
@@ -27,7 +28,6 @@ protected:
         int force; // сила удара
     };
 
-    // Вложенный класс Table
     class Table {
     public:
         std::pair<int, int> leftTop; // левый верхний угол стола {x, y}
@@ -48,7 +48,14 @@ public:
     void strikeCueAtBall(Cue& cue, Ball& ball);
     void transferImpulse(Cue& cue, Ball& ball);
 
-    // Методы для доступа к объектам игры
+    // Метод для копирования данных из Ball в массив
+    int getBallsAsArray(Ball* balls, int max_count) const;
+
+    // GameController - друг для доступа к protected методам
+    friend class GameController;
+
+protected:
+    // Методы для доступа к объектам игры (только для чтения)
     const std::vector<std::unique_ptr<Ball>>& getBalls() const { return balls; }
     const std::unique_ptr<Cue>& getCue() const { return cue; }
     const std::unique_ptr<Table>& getTable() const { return table; }
