@@ -1,73 +1,48 @@
-// Основной класс игры бильярд
-#include <vector>
-#include <memory>
+// Реализация класса игры бильярд
+#include "game.h"
 
-class Game {
-private: 
+Game::Game(int aSteps) {
+    // Инициализация игры
+    steps = aSteps;
+    balls.reserve(10); // резервируем место шаров
+
+    //balls.push_back(std::make_unique<Ball>(std::pair<int, int>(100, 100), std::pair<int, int>(0, 0), 10, Color::WHITE)); // белый шар
+    balls.push_back(std::make_unique<Ball>()); // добавляем белый шар
+    balls[1]->position = {100, 100}; // задаем позицию белого шара
+    balls[1]->velocity = {0, 0}; // начальная скорость
+    balls[1]->radius = 10; // радиус шара
+    balls[1]->color = Color::WHITE; // цвет шара
     
-    class Ball {   
-    // скорость    
-    // x   
-    // y   
-    // радиус  
-    // масса или заряд (вот зачем вы проверяете readme в коммитах?)  
-    // флаг //на случай если если шар черный или если шар белый (возможно enum или поле с цветом)  
-    };
+    cue = std::make_unique<Cue>();
+    table = std::make_unique<Table>();
+}
 
+void Game::resetGame() {
+    // Внутренний сброс игры
+}
 
-    class Cue {
-        // начальное положение (x,y)  
-        // направление (вектор)    
-        // сила удара  
-    };
+void Game::checkBoundaries() {
+    // Внутренняя проверка границ
+}
 
-    
-    class Table {        
-        // x,y середины или угла   
-        // x,y длинны/2 или второго угла   
-        // коэффициент трения (что бы шары не катались бесконечно)  
-    };
+void Game::checkCollisions() {
+    // Внутренняя проверка столкновений
+}
 
-    // Контейнеры для объектов игры
-    std::vector<std::unique_ptr<Ball>> balls;
-    std::unique_ptr<Cue> cue;
-    std::unique_ptr<Table> table;
+void Game::updateBallCollisions() {
+    // обновление скорости шаров при столкновение друг с другом
+    //что-то с углами и импульсами
 
-public:
-    
-    // инициализация //определить единую систему координат для всего проекта
-    
-    Game() {
-        // Инициализация игры
-    }
+}
 
-    void resetGame() {
-        // Внутренний сброс игры
-    }
-    
-    void checkBoundaries() {
-        // Внутренняя проверка границ
-    }
-    
-    void checkCollisions() {
-        // Внутренняя проверка столкновений
-    }
+void Game::calculateBallMovement(Ball& ball) {
+    // функция расчета конечной точки (т.е. скорость шара падает со временем из-за трения)
+}
 
-    void updateBallCollisions() {
-        // обновление скорости шаров при столкновение друг с другом
-        //что-то с углами и импульсами 
-    }
+void Game::strikeCueAtBall(Cue& cue, Ball& ball) {
+    // расчет скорости кия //дельта x и дельта y
+}
 
-    void calculateBallMovement(Ball& ball) {      
-        // функция расчета конечной точки (т.е. скорость шара падает со временем из-за трения)
-    }
-
-    void strikeCueAtBall(Cue& cue, Ball& ball) {             
-        // расчет скорости кия //дельта x и дельта y
-    }
-    
-    void transferImpulse(Cue& cue, Ball& ball) {             
-        // передача импульса от кия к белому шару //записываем дельта х и дельта у в скорость шара
-    }
-    
-};
+void Game::transferImpulse(Cue& cue, Ball& ball) {
+    // передача импульса от кия к белому шару //записываем дельта х и дельта у в скорость шара
+}
