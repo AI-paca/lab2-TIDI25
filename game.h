@@ -15,7 +15,7 @@ public:
 
     struct Ball {
         std::pair<int, int> position; // позиция/центр шара {x, y}
-        std::pair<int, int> velocity; // вектор скорости {speedX, speedY}
+        std::pair<float, float> speed; // вектор скорости {speedX, speedY}
         int radius;
         Color color; //цвет шара
     };
@@ -37,7 +37,7 @@ protected:
 
 public:
     // Конструктор
-    Game(int aSteps);
+    Game(int animationSteps);
 
     // Основные методы
     void resetGame();
@@ -47,9 +47,11 @@ public:
     void calculateBallMovement(Ball& ball);
     void strikeCueAtBall(Cue& cue, Ball& ball);
     void transferImpulse(Cue& cue, Ball& ball);
+    void update();
 
     // Метод для копирования данных из Ball в массив
     int getBallsAsArray(Ball* balls, int max_count) const;
+    int aSteps; // количество шагов анимации (для расчета скорости и т.д.)
 
     // GameController - друг для доступа к protected методам
     friend class GameController;
@@ -66,8 +68,13 @@ private:
     std::unique_ptr<Cue> cue;
     std::unique_ptr<Table> table;
 
+    float gravity = 9.81f; // гравитация
+    float frictionCoefficient = 0.03f; // коэффициент трения
     // Количество шагов в игре
-    int steps;
+    float time;
+
+    // Флаг движения: true если хотя бы один шар движется
+    bool isMoving;
 };
 
 #endif // GAME_H

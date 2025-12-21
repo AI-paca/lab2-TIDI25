@@ -14,7 +14,7 @@ libgame = ctypes.CDLL('./libgame.so')
 class Ball(ctypes.Structure):
     _fields_ = [
         ("position", ctypes.c_int * 2),  # pair<int, int>
-        ("velocity", ctypes.c_int * 2),  # pair<int, int>
+        ("velocity", ctypes.c_float * 2),  # pair<float, float>
         ("radius", ctypes.c_int),
         ("color", ctypes.c_int)
     ]
@@ -31,12 +31,12 @@ def get_cpp_ball_data():
     result = []
     for i in range(count):
         ball = balls_array[i]
-        result.append((ball.position[0], ball.position[1], ball.radius, ball.color))
+        result.append((ball.position[0], ball.position[1], ball.radius, ball.color, ball.velocity[0], ball.velocity[1]))
 
     # Вывести данные в консоль для проверки
     print(f"C++ вернул {count} шаров:")
     for i, obj in enumerate(result):
-        print(f"  Шар {i}: x={obj[0]}, y={obj[1]}, radius={obj[2]}, color={obj[3]}")
+        print(f"  Шар {i}: x={obj[0]}, y={obj[1]}, radius={obj[2]}, color={obj[3]}, vx={obj[4]}, vy={obj[5]}")
 
     return result
 
@@ -116,6 +116,10 @@ while running:
         steps_needed = int(time_since_update // MS_PER_STEP)
         engine.update(steps_needed)
         last_update_time += steps_needed * MS_PER_STEP
+
+        # Обновляем состояние игры в C++
+        for _ in range(steps_needed):
+            libgame.update_game()
         
         frame_count += 1
         if current_time - fps_update_time >= 1000:
@@ -130,7 +134,7 @@ while running:
     objects = engine.get_render_data()
 
     for obj in objects:
-        px, py, radius, p_type = obj
+        px, py, radius, p_type, vx, vy = obj
         color = WHITE if p_type == 3 else RED if p_type == 0 else YELLOW if p_type == 1 else BLACK
         pygame.draw.circle(screen, color, (int(px), int(py)), radius)
 

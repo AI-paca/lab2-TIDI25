@@ -76,14 +76,14 @@ int GameController::getBallsAsArray(void* balls, int max_count) {
 void GameController::update() {
     // Обновление состояния
     if (game) {
-        game->updateBallCollisions();
+        game->update();
     }
 }
 
 // ==========================================
 // EXTERN C: ЭКСПОРТ ДЛЯ PYTHON
 // ==========================================
-extern "C" {
+// Реализация функций для Python (объявления в interfaces.h)
 
 // Глобальный контроллер
 static GameController* g_controller = nullptr;
@@ -105,4 +105,8 @@ extern "C" int get_balls_array(void* balls, int max_count) {
     return g_controller->getBallsAsArray(balls, max_count);
 }
 
+extern "C" void update_game() {
+    if (g_controller) {
+        g_controller->update();
+    }
 }
