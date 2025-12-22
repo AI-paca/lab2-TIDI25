@@ -37,38 +37,39 @@ std::vector<void*> GameController::getRenderData() {
 
 //////////////////////////////////////////////
 
-//на случай если у нас будет не pygame - вернуть список не всех эллементов, а только шаров, только кия или только стола (+ 3 ф-ии)
-std::vector<void*> GameController::getBalls() {
-    std::vector<void*> result;
-    if (game) {
-        const auto& balls = game->getBalls();
-        if (!balls.empty()) {
-            // Возвращаем указатели на все шары из контейнера
-            for (const auto& ball : balls) {
-                result.push_back(ball.get());
-            }
-        }
-    }
-    return result;
-}
-
-// std::vector<void*> getCue() {
-//     return {};
-// }
-
-// std::vector<void*> getTable() {
-//     return {};
-// }
-
-/////////////////////////////////////////////////
-
-// vector<void*> в массив для Python
+// Метод для получения массива шаров для Python
+// Копирует данные в предварительно выделенный буфер
 int GameController::getBallsAsArray(void* balls, int max_count) {
-    if (!balls || max_count <= 0) {
+    if (!balls || max_count <= 0 || !game) {
         return 0;
     }
+
     Game::Ball* balls_array = static_cast<Game::Ball*>(balls);
-    return game->getBallsAsArray(balls_array, max_count);
+    int count = std::min(Game::BALLS_COUNT, max_count);
+    const Game::Ball* source_balls = game->getBalls();
+
+    // Эффективное копирование данных
+    for (int i = 0; i < count; i++) {
+        balls_array[i] = source_balls[i];
+    }
+
+    return count;
+}
+
+// Метод для получения кия
+const void* GameController::getCue() {
+    if (!game) {
+        return nullptr;
+    }
+    return game->getCue().get();
+}
+
+// Метод для получения стола
+const void* GameController::getTable() {
+    if (!game) {
+        return nullptr;
+    }
+    return game->getTable().get();
 }
 
 /////////////////////////////////////////////////
@@ -103,6 +104,20 @@ extern "C" int get_balls_array(void* balls, int max_count) {
 
     // Использовать метод из GameController
     return g_controller->getBallsAsArray(balls, max_count);
+}
+
+extern "C" const void* get_cue() {
+    if (!g_controller) {
+        return nullptr;
+    }
+    return g_controller->getCue();
+}
+
+extern "C" const void* get_table() {
+    if (!g_controller) {
+        return nullptr;
+    }
+    return g_controller->getTable();
 }
 
 extern "C" void update_game() {

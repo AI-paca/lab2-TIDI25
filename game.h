@@ -11,7 +11,7 @@ class GameController; // Forward declaration; данный класс нужен
 class Game {
 
 public:
-    enum Color { RED, YELLOW, BLACK, WHITE }; // цвета шаров
+    enum Color { WHITE, YELLOW, BLUE, RED, PURPLE, ORANGE, GREEN, MAROON, BLACK, YELLOW_STRIPED }; // цвета шаров
 
     struct Ball {
         std::pair<int, int> position; // позиция/центр шара {x, y}
@@ -19,23 +19,18 @@ public:
         int radius;
         Color color; //цвет шара
     };
-
-protected:
-    class Cue {
-    public:
+    struct Cue {
         std::pair<int, int> position; // позиция кия {x, y}
         std::pair<int, int> direction; // направление кия {dirX, dirY}
         int force; // сила удара
     };
 
-    class Table {
-    public:
+    struct Table {
         std::pair<int, int> leftTop; // левый верхний угол стола {x, y}
         std::pair<int, int> rightBottom; // правый нижний угол стола
         float frictionCoefficient; // коэффициент трения
     };
-
-public:
+    
     // Конструктор
     Game(int animationSteps);
 
@@ -49,24 +44,13 @@ public:
     void transferImpulse(Cue& cue, Ball& ball);
     void update();
 
-    // Метод для копирования данных из Ball в массив
-    int getBallsAsArray(Ball* balls, int max_count) const;
     int aSteps; // количество шагов анимации (для расчета скорости и т.д.)
 
     // GameController - друг для доступа к protected методам
     friend class GameController;
 
-protected:
-    // Методы для доступа к объектам игры (только для чтения)
-    const std::vector<std::unique_ptr<Ball>>& getBalls() const { return balls; }
-    const std::unique_ptr<Cue>& getCue() const { return cue; }
-    const std::unique_ptr<Table>& getTable() const { return table; }
-
 private:
-    // Контейнеры для объектов игры
-    std::vector<std::unique_ptr<Ball>> balls;
-    std::unique_ptr<Cue> cue;
-    std::unique_ptr<Table> table;
+    static constexpr int BALLS_COUNT = 10; // фиксированное количество шаров
 
     float gravity = 9.81f; // гравитация
     float frictionCoefficient = 0.03f; // коэффициент трения
@@ -75,6 +59,20 @@ private:
 
     // Флаг движения: true если хотя бы один шар движется
     bool isMoving;
+    
+protected:
+    // Контейнеры для объектов игры
+    Ball balls[BALLS_COUNT]; // фиксированный массив шаров
+    std::unique_ptr<Cue> cue;
+    std::unique_ptr<Table> table;
+
+    // Методы для доступа к объектам игры (только для чтения)
+    const Ball* getBalls() const { return balls; }
+    int getBallsCount() const { return BALLS_COUNT; } // фиксированное количество шаров
+    const std::unique_ptr<Cue>& getCue() const { return cue; }
+    const std::unique_ptr<Table>& getTable() const { return table; }
+
+
 };
 
 #endif // GAME_H

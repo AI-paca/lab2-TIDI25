@@ -5,15 +5,30 @@ Game::Game(int animationSteps) {
     // Инициализация игры
     time  = animationSteps; // количество шагов анимации
     isMoving = true; // В начале шары движутся
-    balls.reserve(10); // резервируем место шаров
 
-    // Создаем белый шар
-    balls.push_back(std::make_unique<Ball>());
-    balls[0]->position = {100, 100}; // задаем позицию белого шара
-    balls[0]->speed = {10, 10}; // начальная скорость
-    balls[0]->radius = 10; // радиус шара
-    balls[0]->color = Color::WHITE; // цвет шара
-    
+    // Инициализация массива шаров (стандартный набор Aramith)
+    for (int i = 0; i < 10; i++) {
+        balls[i].radius = 10;
+        balls[i].speed = {0, 0};
+        balls[i].position = {100 + i * 20, 200};
+    }
+
+    // Биток (белый шар) - специальная инициализация
+    balls[0].position = {100, 100};
+    balls[0].speed = {10, 10};
+    balls[0].color = Color::WHITE;
+
+    // Остальные шары по порядку
+    balls[1].color = Color::YELLOW;     // 1: жёлтый
+    balls[2].color = Color::BLUE;       // 2: синий
+    balls[3].color = Color::RED;        // 3: красный
+    balls[4].color = Color::PURPLE;     // 4: фиолетовый
+    balls[5].color = Color::ORANGE;     // 5: оранжевый
+    balls[6].color = Color::GREEN;      // 6: зелёный
+    balls[7].color = Color::MAROON;     // 7: бордовый
+    balls[8].color = Color::BLACK;      // 8: чёрный
+    balls[9].color = Color::YELLOW_STRIPED; // 9: жёлтый с полосой
+
     cue = std::make_unique<Cue>();
     table = std::make_unique<Table>();
 }
@@ -75,44 +90,20 @@ void Game::transferImpulse(Cue& cue, Ball& ball) {
 void Game::update() {
     // Обновление состояния игры только если есть движение
     if (isMoving) {
-        for (auto& ball : balls) {
-            calculateBallMovement(*ball);
+        for (int i = 0; i < BALLS_COUNT; i++) {
+            calculateBallMovement(balls[i]);
         }
         updateBallCollisions();
         time++; // Увеличиваем счетчик шагов
 
         // Проверяем, остановились ли все шары
         bool anyBallMoving = false;
-        for (const auto& ball : balls) {
-            if (ball->speed.first != 0 || ball->speed.second != 0) {
+        for (int i = 0; i < BALLS_COUNT; i++) {
+            if (balls[i].speed.first != 0 || balls[i].speed.second != 0) {
                 anyBallMoving = true;
                 break;
             }
         }
         isMoving = anyBallMoving;
     }
-}
-
-/////////////////////////////////////////////////
-
-// Метод для копирования данных из Ball в массив
-int Game::getBallsAsArray(Ball* balls_array, int max_count) const {
-    if (!balls_array || max_count <= 0) {
-        return 0;
-    }
-
-    // Получить шары из контейнера
-    int count = std::min((int)balls.size(), max_count);
-
-    // Заполнить массив данными из каждого шара
-    for (int i = 0; i < count; i++) {
-        if (balls[i]) {
-            balls_array[i].position = balls[i]->position;
-            balls_array[i].speed = balls[i]->speed;
-            balls_array[i].radius = balls[i]->radius;
-            balls_array[i].color = balls[i]->color;
-        }
-    }
-
-    return count;
 }

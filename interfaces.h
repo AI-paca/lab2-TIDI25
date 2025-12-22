@@ -26,10 +26,13 @@ public:
     virtual void processInput(int x, int y) = 0;
     virtual std::vector<void*> getRenderData() = 0;
     virtual void update() = 0;
-    virtual std::vector<void*> getBalls() = 0;
 
-    // Новый метод для передачи массива в Python
+    // Метод для передачи массива шаров в Python
     virtual int getBallsAsArray(void* balls, int max_count) = 0;
+
+    // Методы для получения указателей на кий и стол
+    virtual const void* getCue() = 0;
+    virtual const void* getTable() = 0;
 };
 
 // ==========================================
@@ -38,6 +41,8 @@ public:
 // Объявления функций для Python (реализация в controller.cc)
 extern "C" void create_game_controller(int steps);
 extern "C" int get_balls_array(void* balls, int max_count);
+extern "C" const void* get_cue();
+extern "C" const void* get_table();
 extern "C" void update_game();
 
 #endif // INTERFACES_H

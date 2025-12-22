@@ -19,6 +19,22 @@ class Ball(ctypes.Structure):
         ("color", ctypes.c_int)
     ]
 
+# Определить структуру Cue для Python (как в C++)
+class Cue(ctypes.Structure):
+    _fields_ = [
+        ("position", ctypes.c_int * 2),  # pair<int, int>
+        ("direction", ctypes.c_int * 2),  # pair<int, int>
+        ("force", ctypes.c_int)
+    ]
+
+# Определить структуру Table для Python (как в C++)
+class Table(ctypes.Structure):
+    _fields_ = [
+        ("leftTop", ctypes.c_int * 2),  # pair<int, int>
+        ("rightBottom", ctypes.c_int * 2),  # pair<int, int>
+        ("frictionCoefficient", ctypes.c_float)
+    ]
+
 # Функция для получения данных из C++ через массив
 def get_cpp_ball_data():
     # Создать массив для 10 шаров
@@ -57,13 +73,19 @@ clock = pygame.time.Clock()
 # Шрифт для показа FPS
 font = pygame.font.Font(None, 36)
 
-# Цвета
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-RED = (255, 50, 50)
-BLUE = (50, 50, 255)
-GREEN = (50, 255, 50)
-YELLOW = (255, 255, 50)
+# Цвета (соответствуют enum Color в C++)
+COLOR_MAP = [
+    (255, 255, 255),  # 0: WHITE (биток)
+    (255, 255, 50),   # 1: YELLOW
+    (50, 50, 255),    # 2: BLUE
+    (255, 50, 50),    # 3: RED
+    (128, 0, 128),    # 4: PURPLE
+    (255, 165, 0),    # 5: ORANGE
+    (50, 255, 50),    # 6: GREEN
+    (128, 0, 0),      # 7: MAROON
+    (0, 0, 0),        # 8: BLACK
+    (255, 255, 0)     # 9: YELLOW_STRIPED
+]
 
 # 2. Инициализация движка
 class SimpleEngine:
@@ -128,33 +150,33 @@ while running:
             fps_update_time = current_time
 
     # === ОТРИСОВКА ===
-    screen.fill(BLACK)
+    screen.fill((0, 0, 0))  # BLACK
 
     # Получаем данные из C++ через массив
     objects = engine.get_render_data()
 
     for obj in objects:
         px, py, radius, p_type, vx, vy = obj
-        color = WHITE if p_type == 3 else RED if p_type == 0 else YELLOW if p_type == 1 else BLACK
+        color = COLOR_MAP[p_type] if 0 <= p_type < len(COLOR_MAP) else (255, 255, 255)
         pygame.draw.circle(screen, color, (int(px), int(py)), radius)
 
     # Показать FPS
-    fps_text = font.render(f"Real FPS: {current_fps}", True, WHITE)
+    fps_text = font.render(f"Real FPS: {current_fps}", True, (255, 255, 255))  # WHITE
     screen.blit(fps_text, (10, 10))
-    
-    target_text = font.render(f"Target: {TARGET_FPS} FPS", True, GREEN)
+
+    target_text = font.render(f"Target: {TARGET_FPS} FPS", True, (50, 255, 50))  # GREEN
     screen.blit(target_text, (10, 50))
-    
-    ms_text = font.render(f"Step: {MS_PER_STEP}ms", True, YELLOW)
+
+    ms_text = font.render(f"Step: {MS_PER_STEP}ms", True, (255, 255, 50))  # YELLOW
     screen.blit(ms_text, (10, 90))
 
     status_text = f"CATCH-UP: OK - C++ data loaded"
     steps_info = f"Balls: {len(objects)}"
-    
-    status_surface = font.render(status_text, True, GREEN)
+
+    status_surface = font.render(status_text, True, (50, 255, 50))  # GREEN
     screen.blit(status_surface, (10, 130))
-    
-    steps_surface = font.render(steps_info, True, WHITE)
+
+    steps_surface = font.render(steps_info, True, (255, 255, 255))  # WHITE
     screen.blit(steps_surface, (10, 170))
 
     pygame.display.flip()
