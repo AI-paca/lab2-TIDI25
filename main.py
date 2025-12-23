@@ -3,6 +3,69 @@ import sys
 import time
 import ctypes
 
+
+
+# ==========================================
+# НОВЫЙ КОД С ПРАВИЛЬНОЙ СИНХРОНИЗАЦИЕЙ
+# ==========================================
+
+# 1. Настройка Pygame
+pygame.init()
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("My Physics Lab (correct catch-up)")
+clock = pygame.time.Clock()
+
+# Шрифт для показа FPS
+font = pygame.font.Font(None, 36)
+
+# Цвета (соответствуют enum Color в C++)
+COLOR_MAP = [
+    (255, 255, 255),  # 0: WHITE (биток)
+    (255, 255, 50),   # 1: YELLOW
+    (50, 50, 255),    # 2: BLUE
+    (255, 50, 50),    # 3: RED
+    (128, 0, 128),    # 4: PURPLE
+    (255, 165, 0),    # 5: ORANGE
+    (50, 255, 50),    # 6: GREEN
+    (128, 0, 0),      # 7: MAROON
+    (0, 0, 0),        # 8: BLACK
+    (255, 255, 0)     # 9: YELLOW_STRIPED
+]
+
+# 2. Инициализация движка
+class SimpleEngine:
+    def __init__(self):
+        self.current_step = 0
+        
+    def update(self, steps_count):
+        self.current_step += steps_count
+        
+    def get_render_data(self):
+        # Получаем данные из C++ через массив
+        return get_cpp_ball_data()
+    
+    def handle_click(self, x, y):
+        # Телепортируем шар
+        pass  # Не используется, данные из C++
+
+engine = SimpleEngine()
+
+# 3. Переменные для синхронизации
+running = True
+last_update_time = pygame.time.get_ticks()
+frame_count = 0
+fps_update_time = pygame.time.get_ticks()
+current_fps = 0
+
+# 4. НАСТРОЙКА FPS
+TARGET_FPS = 10
+MS_PER_STEP = 1000 // TARGET_FPS
+
+# АВТО РАСЧЕТ FPS (ЗАКОММЕНТИРОВАНО)
+# TARGET_FPS = clock.get_fps()  # <- Распакуйте если нужен авто-расчет
+# MS_PER_STEP = 1000 // int(TARGET_FPS) if TARGET_FPS > 0 else 16
+
 # ==========================================
 # ПРОСТОЙ ДОСТУП К C++ ДАННЫМ
 # ==========================================
@@ -74,69 +137,11 @@ def get_cpp_table_data():
     return table
 
 # Инициализировать C++ контроллер
-libgame.create_game_controller(60)
+libgame.create_game_controller(TARGET_FPS)
 
 # ==========================================
-# НОВЫЙ КОД С ПРАВИЛЬНОЙ СИНХРОНИЗАЦИЕЙ
+# ГЛАВНЫЙ ЦИКЛ ИГРЫ
 # ==========================================
-
-# 1. Настройка Pygame
-pygame.init()
-WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("My Physics Lab (correct catch-up)")
-clock = pygame.time.Clock()
-
-# Шрифт для показа FPS
-font = pygame.font.Font(None, 36)
-
-# Цвета (соответствуют enum Color в C++)
-COLOR_MAP = [
-    (255, 255, 255),  # 0: WHITE (биток)
-    (255, 255, 50),   # 1: YELLOW
-    (50, 50, 255),    # 2: BLUE
-    (255, 50, 50),    # 3: RED
-    (128, 0, 128),    # 4: PURPLE
-    (255, 165, 0),    # 5: ORANGE
-    (50, 255, 50),    # 6: GREEN
-    (128, 0, 0),      # 7: MAROON
-    (0, 0, 0),        # 8: BLACK
-    (255, 255, 0)     # 9: YELLOW_STRIPED
-]
-
-# 2. Инициализация движка
-class SimpleEngine:
-    def __init__(self):
-        self.current_step = 0
-        
-    def update(self, steps_count):
-        self.current_step += steps_count
-        
-    def get_render_data(self):
-        # Получаем данные из C++ через массив
-        return get_cpp_ball_data()
-    
-    def handle_click(self, x, y):
-        # Телепортируем шар
-        pass  # Не используется, данные из C++
-
-engine = SimpleEngine()
-
-# 3. Переменные для синхронизации
-running = True
-last_update_time = pygame.time.get_ticks()
-frame_count = 0
-fps_update_time = pygame.time.get_ticks()
-current_fps = 0
-
-# 4. НАСТРОЙКА FPS
-TARGET_FPS = 40
-MS_PER_STEP = 1000 // TARGET_FPS
-
-# АВТО РАСЧЕТ FPS (ЗАКОММЕНТИРОВАНО)
-# TARGET_FPS = clock.get_fps()  # <- Распакуйте если нужен авто-расчет
-# MS_PER_STEP = 1000 // int(TARGET_FPS) if TARGET_FPS > 0 else 16
-
 
 while running:
     # === ОБРАБОТКА СОБЫТИЙ ===

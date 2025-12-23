@@ -29,6 +29,7 @@ public:
         std::pair<int, int> leftTop; // левый верхний угол стола {x, y}
         std::pair<int, int> rightBottom; // правый нижний угол стола
         float frictionCoefficient; // коэффициент трения
+        //ширина бортика привязанная к радиусу лузы и размеру стола 
     };
     
     // Конструктор

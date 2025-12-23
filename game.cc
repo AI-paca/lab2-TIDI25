@@ -16,8 +16,8 @@ Game::Game(int animationSteps) {
     }
 
     // Биток (белый шар) - специальная инициализация
-    balls[0].position = {100, 100};
-    balls[0].speed = {10, 12};
+    balls[0].position = {200, 100};
+    balls[0].speed = {0, 50};
     balls[0].color = Color::WHITE;
 
     // Остальные шары по порядку
@@ -34,8 +34,8 @@ Game::Game(int animationSteps) {
     cue = std::make_unique<Cue>();
     table = std::make_unique<Table>();
     
-    table->leftTop = {200, 200};
-    table->rightBottom = {600, 400};
+    table->leftTop = {50, 50};
+    table->rightBottom = {750, 500};
     table->frictionCoefficient = 0.015f;
 }
 
@@ -44,9 +44,32 @@ void Game::resetGame() {
 }
 
 void Game::checkBoundaries() {
-    // Внутренняя проверка границ
-}
+    for (int i = 0; i < BALLS_COUNT; i++) {
+        Ball& ball = balls[i];
+        float r = ball.radius;
 
+        // Левая стенка
+        if (ball.position.first - r < table->leftTop.first) {
+            ball.position.first = table->leftTop.first + r;
+            ball.speed.first = -ball.speed.first * 0.3f; // потеря энергии при ударе
+        }
+        // Правая стенка
+        if (ball.position.first + r > table->rightBottom.first) {
+            ball.position.first = table->rightBottom.first - r;
+            ball.speed.first = -ball.speed.first * 0.3f;
+        }
+        // Верхняя стенка
+        if (ball.position.second - r <  table->leftTop.second) {
+            ball.position.second = table->leftTop.second + r;
+            ball.speed.second = -ball.speed.second * 0.3f;
+        }
+        // Нижняя стенка
+        if (ball.position.second + r > table->rightBottom.second) {
+            ball.position.second = table->rightBottom.second - r;
+            ball.speed.second = -ball.speed.second * 0.3f;
+        }
+    }
+}
 void Game::checkCollisions() {
     // Внутренняя проверка столкновений
 }
@@ -149,6 +172,34 @@ void Game::calculateBallMovement(Ball& ball, int steps) { //торможение
     ball.position = {ball.position.first + ball.speed.first, ball.position.second  + ball.speed.second};
 }
 
+// void Game::calculateBallMovement(Ball& ball, int steps) { //gemini physics (выглядит спорно, но оставлю тут на случай если я захочу исправить проблемы с физикой, сейчас он их не исправит)
+//     if (ball.speed.first == 0 && ball.speed.second == 0) return;
+
+//     // 1. Считаем полную скорость (длину вектора)
+//     float speed = std::sqrt(ball.speed.first * ball.speed.first + ball.speed.second * ball.speed.second);
+    
+//     // 2. Считаем, сколько скорости отнимет трение
+//     float friction = table->frictionCoefficient * gravity * steps;
+
+//     // 3. Вычитаем трение
+//     float newSpeed = speed - friction;
+    
+//     // Если трение "съело" всю скорость — останавливаем
+//     if (newSpeed <= 0) {
+//         ball.speed = {0, 0};
+//         return;
+//     }
+
+//     // 4. Масштабируем вектор скорости (сохраняем направление!)
+//     float scale = newSpeed / speed;
+//     ball.speed.first *= scale;
+//     ball.speed.second *= scale;
+
+//     // 5. Двигаем шар
+//     ball.position.first += ball.speed.first;
+//     ball.position.second += ball.speed.second;
+// }
+
 int Game::sign(float x) {
     if (x > 0) return 1;
     else return -1;
@@ -169,6 +220,7 @@ void Game::update() {
             calculateBallMovement(balls[i]);
         }
         updateBallCollisions();
+        checkBoundaries() ; // Проверка границ стола
         time++; // Увеличиваем счетчик шагов
 
         // Проверяем, остановились ли все шары
