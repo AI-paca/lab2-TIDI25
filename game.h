@@ -39,6 +39,7 @@ public:
     void checkBoundaries();
     void checkCollisions();
     void updateBallCollisions();
+    int sign(float x);
     void calculateBallMovement(Ball& ball, int steps);
     void calculateBallMovement(Ball& ball);
     void strikeCueAtBall(Cue& cue, Ball& ball);
@@ -54,7 +55,6 @@ private:
     static constexpr int BALLS_COUNT = 10; // фиксированное количество шаров
 
     float gravity = 9.81f; // гравитация
-    float frictionCoefficient = 0.03f; // коэффициент трения
     // Количество шагов в игре
     float time;
 

@@ -3,14 +3,12 @@
 
 
 void printBallData(const Game::Ball& ball, int index) {
-    if (index == 0) {
     std::cout << "  Шар " << index << ": x=" << ball.position.first
               << ", y=" << ball.position.second
               << ", radius=" << ball.radius
               << ", color=" << static_cast<int>(ball.color)
               << ", vx=" << ball.speed.first
               << ", vy=" << ball.speed.second << std::endl;
-    }
 }
 
 int main() {
