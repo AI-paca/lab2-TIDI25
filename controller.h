@@ -18,7 +18,7 @@ public:
 
     int getBallsAsArray(void* balls, int max_count) override;
     const void* getCue() override;
-    const void* getTable() override;
+    void getTable(int* leftTop, int* rightBottom, float* friction) override;
 
 private:
     // Указатель на игровой объект

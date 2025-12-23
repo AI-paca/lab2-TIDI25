@@ -56,6 +56,23 @@ def get_cpp_ball_data():
 
     return result
 
+# Функция для получения данных стола из C++
+def get_cpp_table_data():
+    # Создаем массивы для хранения данных
+    leftTop = (ctypes.c_int * 2)()
+    rightBottom = (ctypes.c_int * 2)()
+    friction = ctypes.c_float()
+
+    # Вызываем C++ функцию для получения данных стола
+    libgame.get_table(leftTop, rightBottom, ctypes.byref(friction))
+
+    # Создаем и возвращаем объект Table
+    table = Table()
+    table.leftTop = leftTop
+    table.rightBottom = rightBottom
+    table.frictionCoefficient = friction.value
+    return table
+
 # Инициализировать C++ контроллер
 libgame.create_game_controller(60)
 
@@ -151,6 +168,25 @@ while running:
 
     # === ОТРИСОВКА ===
     screen.fill((0, 0, 0))  # BLACK
+
+    # Получаем данные стола и отображаем его
+    table_data = get_cpp_table_data()
+    if table_data:
+        left, top = table_data.leftTop[0], table_data.leftTop[1]
+        right, bottom = table_data.rightBottom[0], table_data.rightBottom[1]
+        width = right - left
+        height = bottom - top
+
+        # Draw table (green felt)
+        pygame.draw.rect(screen, (0, 100, 0), (left, top, width, height))
+
+        # Draw table borders (brown wood)
+        pygame.draw.rect(screen, (139, 69, 19), (left, top, width, height), 10)
+
+        # Display table info
+        table_info = f"Table: ({left},{top}) to ({right},{bottom})"
+        table_surface = font.render(table_info, True, (255, 255, 255))
+        screen.blit(table_surface, (10, 210))
 
     # Получаем данные из C++ через массив
     objects = engine.get_render_data()

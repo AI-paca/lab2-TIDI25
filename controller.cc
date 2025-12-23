@@ -64,12 +64,19 @@ const void* GameController::getCue() {
     return game->getCue().get();
 }
 
-// Метод для получения стола
-const void* GameController::getTable() {
-    if (!game) {
-        return nullptr;
+
+// Метод для получения данных стола
+void GameController::getTable(int* leftTop, int* rightBottom, float* friction) {
+    if (!game || !game->getTable()) {
+        return;
     }
-    return game->getTable().get();
+
+    const auto& table = game->getTable();
+    leftTop[0] = table->leftTop.first;
+    leftTop[1] = table->leftTop.second;
+    rightBottom[0] = table->rightBottom.first;
+    rightBottom[1] = table->rightBottom.second;
+    *friction = table->frictionCoefficient;
 }
 
 /////////////////////////////////////////////////
@@ -113,11 +120,10 @@ extern "C" const void* get_cue() {
     return g_controller->getCue();
 }
 
-extern "C" const void* get_table() {
-    if (!g_controller) {
-        return nullptr;
+extern "C" void get_table(int* leftTop, int* rightBottom, float* friction) {
+    if (g_controller) {
+        g_controller->getTable(leftTop, rightBottom, friction);
     }
-    return g_controller->getTable();
 }
 
 extern "C" void update_game() {

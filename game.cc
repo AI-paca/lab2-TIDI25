@@ -31,6 +31,10 @@ Game::Game(int animationSteps) {
 
     cue = std::make_unique<Cue>();
     table = std::make_unique<Table>();
+    
+    table->leftTop = {200, 200};
+    table->rightBottom = {600, 400};
+    table->frictionCoefficient = 0.03f;
 }
 
 void Game::resetGame() {
