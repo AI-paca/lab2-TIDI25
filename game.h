@@ -39,6 +39,7 @@ public:
     void checkBoundaries();
     void checkCollisions();
     void updateBallCollisions();
+    void calculateBallMovement(Ball& ball, int steps);
     void calculateBallMovement(Ball& ball);
     void strikeCueAtBall(Cue& cue, Ball& ball);
     void transferImpulse(Cue& cue, Ball& ball);

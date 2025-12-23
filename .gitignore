@@ -1,3 +1,5 @@
 lab2-TIDI25.code-workspace
 *.sh
 *.so
+main_test
+*.o

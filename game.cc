@@ -50,7 +50,11 @@ void Game::updateBallCollisions() {
     //что-то с углами и импульсами
 }
 
-void Game::calculateBallMovement(Ball& ball) { //торможение шара
+void Game::calculateBallMovement(Ball& ball){
+    calculateBallMovement(ball, 1);
+}
+
+void Game::calculateBallMovement(Ball& ball, int steps) { //торможение шара
     
 
     if (ball.speed.first == 0 && ball.speed.second == 0) {
@@ -60,10 +64,9 @@ void Game::calculateBallMovement(Ball& ball) { //торможение шара
     // F_тр = μ_k · m · g
     // v(t) = v₀ – μ_k · g · t
     float a = frictionCoefficient * gravity; // коэффициент замедления: a = μ_k · g
-    a = a/time;
 
-    //v(t) = v₀ – a · t
-    ball.speed = {ball.speed.first - a * time, ball.speed.second - a * time};
+    //v(t) = v₀ – a · t, но t=1, поэтому v(t) = v₀ – a; steps - количество пропущеных шагов анимации 
+    ball.speed = {ball.speed.first - a * steps, ball.speed.second - a * steps};
 
     if (ball.speed.first*ball.speed.first < 0.1f) {
         ball.speed.first = 0;
@@ -72,11 +75,7 @@ void Game::calculateBallMovement(Ball& ball) { //торможение шара
         ball.speed.second = 0;
     }
     
-    //dx = vx0 * dt - 0.5 * (vx0 / v0) * a * dt * dt
-    //dy = vy0 * dt - 0.5 * (vy0 / v0) * a * dt * dt
-    int dx = int(ball.speed.first * time - 0.5f * (ball.speed.first / ball.radius) * a * time * time);
-    int dy = int(ball.speed.second * time - 0.5f * (ball.speed.second / ball.radius) * a * time * time);
-    ball.position = {ball.position.first + dx, ball.position.second + dy};
+    ball.position = {ball.position.first + ball.speed.first, ball.position.second  + ball.speed.second};
 }
 
 void Game::strikeCueAtBall(Cue& cue, Ball& ball) {
