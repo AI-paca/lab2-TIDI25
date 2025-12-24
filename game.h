@@ -15,14 +15,16 @@ public:
 
     struct Ball {
         std::pair<int, int> position; // позиция/центр шара {x, y}
-        std::pair<float, float> speed; // вектор скорости {speedX, speedY}
+        std::pair<float, float> speed; // скорость шара {vx, vy}
         int radius;
         Color color; //цвет шара
+
     };
     struct Cue {
-        std::pair<int, int> position; // позиция кия {x, y}
-        std::pair<int, int> direction; // направление кия {dirX, dirY}
-        int force; // сила удара
+        std::pair<float, float> position;  // Координаты "носика" кия {x, y}
+        std::pair<float, float> direction; // направление кия {dirX, dirY}
+        float force;                       // Сила удара
+        bool isActive;                     
     };
 
     struct Table {
@@ -32,6 +34,12 @@ public:
         //ширина бортика привязанная к радиусу лузы и размеру стола 
     };
     
+    //структура лузы{
+    // наследуем структуру шаров
+    // добавляем окресность поглощения шара
+    //  }
+
+
     // Конструктор
     Game(int animationSteps);
 
@@ -43,9 +51,11 @@ public:
     int sign(float x);
     void calculateBallMovement(Ball& ball, int steps);
     void calculateBallMovement(Ball& ball);
-    void strikeCueAtBall(Cue& cue, Ball& ball);
     void transferImpulse(Cue& cue, Ball& ball);
     void update();
+    void calculateCueVelocityFromMouse(int mouseX, int mouseY);
+    void aimCue(int mouseX, int mouseY);
+    void shoot();
 
     int aSteps; // количество шагов анимации (для расчета скорости и т.д.)
 

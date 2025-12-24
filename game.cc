@@ -6,7 +6,7 @@
 Game::Game(int animationSteps) {
     // Инициализация игры
     time  = animationSteps; // количество шагов анимации
-    isMoving = true; // В начале шары движутся
+    isMoving = false;
 
     // Инициализация массива шаров (стандартный набор Aramith)
     for (int i = 0; i < 10; i++) {
@@ -17,7 +17,7 @@ Game::Game(int animationSteps) {
 
     // Биток (белый шар) - специальная инициализация
     balls[0].position = {200, 100};
-    balls[0].speed = {0, 50};
+    balls[0].speed = {0, 0};
     balls[0].color = Color::WHITE;
 
     // Остальные шары по порядку
@@ -33,7 +33,12 @@ Game::Game(int animationSteps) {
 
     cue = std::make_unique<Cue>();
     table = std::make_unique<Table>();
-    
+
+    cue->position = {300.0f, 300.0f};
+    cue->direction = {1.0f, 0.0f};
+    cue->force = 0.0f; 
+    cue->isActive = true; //default
+
     table->leftTop = {50, 50};
     table->rightBottom = {750, 500};
     table->frictionCoefficient = 0.015f;
@@ -205,12 +210,70 @@ int Game::sign(float x) {
     else return -1;
 }
 
-void Game::strikeCueAtBall(Cue& cue, Ball& ball) {
-    // расчет скорости кия //дельта x и дельта y
+
+void Game::aimCue(int mouseX, int mouseY) {
+    if (isMoving) {
+        cue->isActive = false; // Скрываем кий
+        return;
+    }
+
+    cue->isActive = true;
+    Ball& whiteBall = balls[0];
+
+    // куда ударит кий
+    float dx = whiteBall.position.first - mouseX;
+    float dy = whiteBall.position.second - mouseY;
+
+    // сила натяжения (через расстояние от мыши до шара)
+    float distance = std::sqrt(dx * dx + dy * dy);
+
+    const float MAX_PULL_DISTANCE = 200.0f; 
+    const float MAX_SHOT_SPEED = 50.0f;
+
+    float clampedDistance = distance;
+    if (clampedDistance > MAX_PULL_DISTANCE) {
+        clampedDistance = MAX_PULL_DISTANCE;
+    }
+
+    // куда полетит шар 
+    float dirX = 0.0f;
+    float dirY = 0.0f;
+    
+    if (distance > 0.001f) {
+        dirX = dx / distance;
+        dirY = dy / distance;
+    } else {
+        // Если мышь ровно в центре шара, направление по умолчанию (вправо)
+        dirX = 1.0f; 
+        dirY = 0.0f;
+    }
+
+    cue->direction = {dirX, dirY};
+    cue->force = (clampedDistance / MAX_PULL_DISTANCE) * MAX_SHOT_SPEED;
+
+    // визуальная позиции кия
+    // Кий должен быть нарисован с "обратной" стороны от направления удара.
+    // position = шар - (направление удара * (визуальное смещение + расстояние до мыши))
+    float visualOffsetFromBall = whiteBall.radius + 5.0f; // Отступ от края шара
+    
+    // Кий визуально "отъезжает" назад при натяжении
+    cue->position.first = whiteBall.position.first - dirX * (visualOffsetFromBall + clampedDistance);
+    cue->position.second = whiteBall.position.second - dirY * (visualOffsetFromBall + clampedDistance);
 }
 
-void Game::transferImpulse(Cue& cue, Ball& ball) {
-    // передача импульса от кия к белому шару //записываем дельта х и дельта у в скорость шара
+// удара (вызывается контроллер по клику мыши)
+void Game::shoot() {
+    if (isMoving || !cue->isActive) return;
+
+    // передать импульс от кия к шару
+    balls[0].speed.first = cue->direction.first * cue->force;
+    balls[0].speed.second = cue->direction.second * cue->force;
+
+    if (std::abs(cue->force) > 0.1f) {
+        isMoving = true;
+        cue->isActive = false; 
+        cue->force = 0;  
+    }
 }
 
 void Game::update() {

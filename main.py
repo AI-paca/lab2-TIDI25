@@ -73,6 +73,9 @@ MS_PER_STEP = 1000 // TARGET_FPS
 # Загрузить C++ библиотеку
 libgame = ctypes.CDLL('./libgame.so')
 
+# Установить типы возвращаемых значений для функций
+libgame.get_cue.restype = ctypes.c_void_p
+
 # Определить структуру Ball для Python (как в C++)
 class Ball(ctypes.Structure):
     _fields_ = [
@@ -85,9 +88,10 @@ class Ball(ctypes.Structure):
 # Определить структуру Cue для Python (как в C++)
 class Cue(ctypes.Structure):
     _fields_ = [
-        ("position", ctypes.c_int * 2),  # pair<int, int>
-        ("direction", ctypes.c_int * 2),  # pair<int, int>
-        ("force", ctypes.c_int)
+        ("position", ctypes.c_float * 2),  # pair<float, float>
+        ("direction", ctypes.c_float * 2),  # pair<float, float>
+        ("force", ctypes.c_float),
+        ("isActive", ctypes.c_bool)
     ]
 
 # Определить структуру Table для Python (как в C++)
@@ -136,6 +140,16 @@ def get_cpp_table_data():
     table.frictionCoefficient = friction.value
     return table
 
+# Функция для получения данных кия из C++
+def get_cpp_cue_data():
+    cue_ptr = libgame.get_cue()
+    if cue_ptr and cue_ptr != 0:
+        try:
+            return ctypes.cast(cue_ptr, ctypes.POINTER(Cue)).contents
+        except:
+            return None
+    return None
+
 # Инициализировать C++ контроллер
 libgame.create_game_controller(TARGET_FPS)
 
@@ -151,6 +165,12 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             x, y = event.pos
             engine.handle_click(x, y)
+            libgame.shoot_cue()
+            print(f"Клик мыши: x={x}, y={y} | Удар кием")
+        elif event.type == pygame.MOUSEMOTION:
+            mouse_x, mouse_y = event.pos
+            libgame.aim_cue(mouse_x, mouse_y)
+            print(f"Движение мыши: x={mouse_x}, y={mouse_y} | Прицеливание кия")
 
     # === СИНХРОНИЗАЦИЯ ===
     current_time = pygame.time.get_ticks()
@@ -200,6 +220,49 @@ while running:
         px, py, radius, p_type, vx, vy = obj
         color = COLOR_MAP[p_type] if 0 <= p_type < len(COLOR_MAP) else (255, 255, 255)
         pygame.draw.circle(screen, color, (int(px), int(py)), radius)
+
+    # === ОТРИСОВКА КИЯ ===
+    cue_data = get_cpp_cue_data()
+
+    if cue_data and cue_data.isActive:
+        # C++ вернул нам позицию НОСИКА кия (ближний к шару конец)
+        tip_x = cue_data.position[0]
+        tip_y = cue_data.position[1]
+
+        # Направление удара (вектор единичной длины)
+        dir_x = cue_data.direction[0]
+        dir_y = cue_data.direction[1]
+
+        # Длина кия (визуальная константа, в C++ ее больше нет)
+        CUE_LENGTH = 150
+
+        # Ручка кия находится еще дальше от шара, чем носик
+        # Мы идем от носика НАЗАД по вектору направления
+        handle_x = tip_x - dir_x * CUE_LENGTH
+        handle_y = tip_y - dir_y * CUE_LENGTH
+
+        # Рисуем палку (коричневая)
+        pygame.draw.line(screen, (139, 69, 19), (tip_x, tip_y), (handle_x, handle_y), 8)
+
+        # Рисуем наклейку на носу (белая точка)
+        pygame.draw.circle(screen, (200, 200, 200), (int(tip_x), int(tip_y)), 4)
+
+        # (Опционально) Линия прицеливания, куда полетит шар
+        # Рисуем от шара в сторону удара
+        # Для этого нужно найти белый шар в objects
+        for obj in objects:
+            if obj[3] == 0: # White ball
+                wb_x, wb_y = obj[0], obj[1]
+                # Линия полета (полупрозрачная или тонкая)
+                end_aim_x = wb_x + dir_x * 100
+                end_aim_y = wb_y + dir_y * 100
+                pygame.draw.line(screen, (255, 255, 255), (wb_x, wb_y), (end_aim_x, end_aim_y), 1)
+                break
+
+        # Display cue info
+        cue_info = f"Cue: tip=({tip_x:.1f},{tip_y:.1f}), force={cue_data.force:.1f}"
+        cue_surface = font.render(cue_info, True, (255, 255, 255))
+        screen.blit(cue_surface, (10, 250))
 
     # Показать FPS
     fps_text = font.render(f"Real FPS: {current_fps}", True, (255, 255, 255))  # WHITE

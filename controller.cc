@@ -25,8 +25,16 @@ bool GameController::validateState() {
 }
 
 // 4. What should I do? (какие-то параметры которые передал нам питон) -> вызов чего-нибудь из основного класса // методы обработки пользовательского ввода/действий
-void GameController::processInput(int x, int y) {
-    // Обработка пользовательского ввода
+void GameController::aimCue(int mouseX, int mouseY) {
+    if (game) {
+        game->aimCue(mouseX, mouseY);
+    }
+}
+
+void GameController::shootCue() {
+    if (game) {
+        game->shoot();
+    }
 }
 
 // 5. I guessos all good //вернуть питону объекты класса через get которые он попросил (а судя по pygame он просит все, т.ч. этот метод будет возвращать список из всех шаров, кия и стола)
@@ -61,7 +69,11 @@ const void* GameController::getCue() {
     if (!game) {
         return nullptr;
     }
-    return game->getCue().get();
+    const auto& cue_ptr = game->getCue();
+    if (!cue_ptr) {
+        return nullptr;
+    }
+    return cue_ptr.get();
 }
 
 
@@ -129,5 +141,17 @@ extern "C" void get_table(int* leftTop, int* rightBottom, float* friction) {
 extern "C" void update_game() {
     if (g_controller) {
         g_controller->update();
+    }
+}
+
+extern "C" void aim_cue(int mouseX, int mouseY) {
+    if (g_controller) {
+        g_controller->aimCue(mouseX, mouseY);
+    }
+}
+
+extern "C" void shoot_cue() {
+    if (g_controller) {
+        g_controller->shootCue();
     }
 }

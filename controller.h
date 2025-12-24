@@ -12,13 +12,16 @@ public:
     // Основные методы интерфейса
     void start() override;
     bool validateState() override;
-    void processInput(int x, int y) override;
     std::vector<void*> getRenderData() override;
     void update() override;
 
     int getBallsAsArray(void* balls, int max_count) override;
     const void* getCue() override;
     void getTable(int* leftTop, int* rightBottom, float* friction) override;
+
+    // Новые методы для управления кием
+    void aimCue(int mouseX, int mouseY) override;
+    void shootCue() override;
 
 private:
     // Указатель на игровой объект

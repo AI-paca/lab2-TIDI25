@@ -23,7 +23,6 @@ public:
     virtual ~IGameController() = default;
     virtual void start() = 0;
     virtual bool validateState() = 0;
-    virtual void processInput(int x, int y) = 0;
     virtual std::vector<void*> getRenderData() = 0;
     virtual void update() = 0;
 
@@ -33,6 +32,9 @@ public:
 
     virtual const void* getCue() = 0;
     virtual void getTable(int* leftTop, int* rightBottom, float* friction) = 0;
+
+    virtual void aimCue(int mouseX, int mouseY) = 0;
+    virtual void shootCue() = 0;
 };
 
 // ==========================================
@@ -44,5 +46,7 @@ extern "C" int get_balls_array(void* balls, int max_count);
 extern "C" const void* get_cue();
 extern "C" void get_table(int* leftTop, int* rightBottom, float* friction);
 extern "C" void update_game();
+extern "C" void aim_cue(int mouseX, int mouseY);
+extern "C" void shoot_cue();
 
 #endif // INTERFACES_H
