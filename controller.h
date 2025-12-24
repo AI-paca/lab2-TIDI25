@@ -16,6 +16,7 @@ public:
     void update() override;
 
     int getBallsAsArray(void* balls, int max_count) override;
+    int getPocketsAsArray(void* pockets, int max_count) override;
     const void* getCue() override;
     void getTable(int* leftTop, int* rightBottom, float* friction) override;
 

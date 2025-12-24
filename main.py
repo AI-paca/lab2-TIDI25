@@ -82,7 +82,15 @@ class Ball(ctypes.Structure):
         ("position", ctypes.c_int * 2),  # pair<int, int>
         ("velocity", ctypes.c_float * 2),  # pair<float, float>
         ("radius", ctypes.c_int),
-        ("color", ctypes.c_int)
+        ("color", ctypes.c_int),
+        ("isPocketed", ctypes.c_bool)
+    ]
+
+# Определить структуру Pocket для Python (как в C++)
+class Pocket(ctypes.Structure):
+    _fields_ = [
+        ("position", ctypes.c_float * 2),  # pair<float, float>
+        ("radius", ctypes.c_float)
     ]
 
 # Определить структуру Cue для Python (как в C++)
@@ -114,12 +122,33 @@ def get_cpp_ball_data():
     result = []
     for i in range(count):
         ball = balls_array[i]
-        result.append((ball.position[0], ball.position[1], ball.radius, ball.color, ball.velocity[0], ball.velocity[1]))
+        result.append((ball.position[0], ball.position[1], ball.radius, ball.color, ball.velocity[0], ball.velocity[1], ball.isPocketed))
 
     # Вывести данные в консоль для проверки
     print(f"C++ вернул {count} шаров:")
     for i, obj in enumerate(result):
-        print(f"  Шар {i}: x={obj[0]}, y={obj[1]}, radius={obj[2]}, color={obj[3]}, vx={obj[4]}, vy={obj[5]}")
+        print(f"  Шар {i}: x={obj[0]}, y={obj[1]}, radius={obj[2]}, color={obj[3]}, vx={obj[4]}, vy={obj[5]}, pocketed={obj[6]}")
+
+    return result
+
+# Функция для получения данных луз из C++
+def get_cpp_pocket_data():
+    # Создать массив для 6 луз
+    pockets_array = (Pocket * 6)()
+
+    # Вызвать C++ функцию для получения данных
+    count = libgame.get_pockets_array(pockets_array, 6)
+
+    # Преобразовать в список кортежей для Python
+    result = []
+    for i in range(count):
+        pocket = pockets_array[i]
+        result.append((pocket.position[0], pocket.position[1], pocket.radius))
+
+    # Вывести данные в консоль для проверки
+    print(f"C++ вернул {count} луз:")
+    for i, obj in enumerate(result):
+        print(f"  Луза {i}: x={obj[0]}, y={obj[1]}, radius={obj[2]}")
 
     return result
 
@@ -216,10 +245,17 @@ while running:
     # Получаем данные из C++ через массив
     objects = engine.get_render_data()
 
+    # Получаем данные луз и отображаем их
+    pockets = get_cpp_pocket_data()
+    for pocket in pockets:
+        px, py, radius = pocket
+        pygame.draw.circle(screen, (128, 128, 128), (int(px), int(py)), int(radius), 2)  # Серые круги
+
     for obj in objects:
-        px, py, radius, p_type, vx, vy = obj
-        color = COLOR_MAP[p_type] if 0 <= p_type < len(COLOR_MAP) else (255, 255, 255)
-        pygame.draw.circle(screen, color, (int(px), int(py)), radius)
+        px, py, radius, p_type, vx, vy, is_pocketed = obj
+        if not is_pocketed:  # Не отображаем забитые шары
+            color = COLOR_MAP[p_type] if 0 <= p_type < len(COLOR_MAP) else (255, 255, 255)
+            pygame.draw.circle(screen, color, (int(px), int(py)), radius)
 
     # === ОТРИСОВКА КИЯ ===
     cue_data = get_cpp_cue_data()

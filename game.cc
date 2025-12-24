@@ -1,6 +1,7 @@
 // Реализация класса игры бильярд
 #include "game.h"
 #include <cmath>
+#include <iostream>
 
 
 Game::Game(int animationSteps) {
@@ -13,12 +14,15 @@ Game::Game(int animationSteps) {
         balls[i].radius = 10;
         balls[i].speed = {0, 0};
         balls[i].position = {100 + i * 20, 200 + i * 10};
+        balls[i].isPocketed = false;
     }
 
     // Биток (белый шар) - специальная инициализация
     balls[0].position = {200, 100};
     balls[0].speed = {0, 0};
     balls[0].color = Color::WHITE;
+
+    whiteBallInitialPosition = balls[0].position;
 
     // Остальные шары по порядку
     balls[1].color = Color::YELLOW;     // 1: жёлтый
@@ -42,6 +46,65 @@ Game::Game(int animationSteps) {
     table->leftTop = {50, 50};
     table->rightBottom = {750, 500};
     table->frictionCoefficient = 0.015f;
+
+    initPockets();
+}
+
+void Game::initPockets() {
+    float left = table->leftTop.first;
+    float top = table->leftTop.second;
+    float right = table->rightBottom.first;
+    float bottom = table->rightBottom.second;
+    float centerX = (left + right) / 2.0f;
+
+    // Радиус лузы = 1.2 × радиус шара
+    float pocketRadius = balls[0].radius * 1.2f;
+
+    // Массив координат 6 луз (центры ровно на рамке стола)
+    std::pair<float, float> positions[POCKETS_COUNT] = {
+        {left, top},        // 0: верхний левый угол (ровно на рамке)
+        {centerX, top},     // 1: верхний центр (ровно на верхней рамке)
+        {right, top},       // 2: верхний правый угол (ровно на рамке)
+        {left, bottom},     // 3: нижний левый угол (ровно на рамке)
+        {centerX, bottom},  // 4: нижний центр (ровно на нижней рамке)
+        {right, bottom}     // 5: нижний правый угол (ровно на рамке)
+    };
+
+    // Создаём лузы циклом
+    for (int i = 0; i < POCKETS_COUNT; i++) {
+        pockets[i].position = positions[i];
+        pockets[i].radius = pocketRadius;
+    }
+}
+
+void Game::checkPockets() {
+    for (int i = 0; i < BALLS_COUNT; i++) {
+        if (balls[i].isPocketed) continue; // Пропускаем уже забитые
+
+        for (int p = 0; p < POCKETS_COUNT; p++) {
+            float dx = balls[i].position.first - pockets[p].position.first;
+            float dy = balls[i].position.second - pockets[p].position.second;
+            float distance = std::sqrt(dx * dx + dy * dy);
+
+            // Центр шара попал в круг лузы?
+            // Для угловых луз (0, 2, 3, 5) используем больший радиус detection
+            float effectiveRadius = pockets[p].radius;
+
+
+            if (distance <= effectiveRadius*1.25f) {
+                if (i == 0) {
+                    // Белый шар: телепортируем на начальную позицию
+                    balls[i].speed = {0, 0};
+                    balls[i].position = whiteBallInitialPosition;
+                } else {
+                    balls[i].isPocketed = true;
+                    balls[i].speed = {0, 0};
+                    balls[i].position = {-100, -100}; // Убираем за экран
+                }
+                break;
+            }
+        }
+    }
 }
 
 void Game::resetGame() {
@@ -284,6 +347,7 @@ void Game::update() {
         }
         updateBallCollisions();
         checkBoundaries() ; // Проверка границ стола
+        checkPockets();     // Проверка попадания в лузы
         time++; // Увеличиваем счетчик шагов
 
         // Проверяем, остановились ли все шары

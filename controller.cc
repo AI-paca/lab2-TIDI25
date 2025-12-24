@@ -64,6 +64,23 @@ int GameController::getBallsAsArray(void* balls, int max_count) {
     return count;
 }
 
+// Метод для получения массива луз для Python
+int GameController::getPocketsAsArray(void* pockets, int max_count) {
+    if (!pockets || max_count <= 0 || !game) {
+        return 0;
+    }
+
+    Game::Pocket* pockets_array = static_cast<Game::Pocket*>(pockets);
+    int count = std::min(Game::POCKETS_COUNT, max_count);
+    const Game::Pocket* source_pockets = game->getPockets();
+
+    for (int i = 0; i < count; i++) {
+        pockets_array[i] = source_pockets[i];
+    }
+
+    return count;
+}
+
 // Метод для получения кия
 const void* GameController::getCue() {
     if (!game) {
@@ -123,6 +140,15 @@ extern "C" int get_balls_array(void* balls, int max_count) {
 
     // Использовать метод из GameController
     return g_controller->getBallsAsArray(balls, max_count);
+}
+
+extern "C" int get_pockets_array(void* pockets, int max_count) {
+    if (!g_controller || !pockets || max_count <= 0) {
+        return 0;
+    }
+
+    // Использовать метод из GameController
+    return g_controller->getPocketsAsArray(pockets, max_count);
 }
 
 extern "C" const void* get_cue() {
