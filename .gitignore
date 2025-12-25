@@ -3,3 +3,4 @@ lab2-TIDI25.code-workspace
 *.so
 main_test
 *.o
+build/

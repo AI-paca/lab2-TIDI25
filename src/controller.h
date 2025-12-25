@@ -3,31 +3,29 @@
 
 #include "game.h"
 #include "interfaces.h"
+#include <vector>
 
 class GameController : public IGameController {
+private:
+    Game* game;
+
 public:
     // Конструкторы
     GameController(int animationSteps);
+    GameController(int animationSteps, int screenWidth, int screenHeight);
     GameController(int animationSteps, int left, int top, int right, int bottom);
+    ~GameController();
 
-    // Основные методы интерфейса
     void start() override;
-    bool validateState() override;
-    std::vector<void*> getRenderData() override;
-    void update() override;
+    void update(int steps) override;
 
-    int getBallsAsArray(void* balls, int max_count) override;
-    int getPocketsAsArray(void* pockets, int max_count) override;
-    const void* getCue() override;
-    void getTable(int* leftTop, int* rightBottom, float* friction, int* borderThickness) override;
-
-    // Новые методы для управления кием
     void aimCue(int mouseX, int mouseY) override;
     void shootCue() override;
 
-private:
-    // Указатель на игровой объект
-    Game* game;
+    std::vector<GameObj::Ball> getBalls() const override;
+    std::vector<GameObj::Pocket> getPockets() const override;
+    GameObj::Cue getCue() const override;
+    GameObj::Table getTable() const override;
 };
 
 #endif // CONTROLLER_H

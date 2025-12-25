@@ -16,8 +16,8 @@ Game::Game(int animationSteps) {
         balls[i].isPocketed = false;
     }
 
-    cue = std::make_unique<Cue>();
-    table = std::make_unique<Table>();
+    cue = std::make_unique<GameObj::Cue>();
+    table = std::make_unique<GameObj::Table>();
 
     cue->position = {300.0f, 300.0f};
     cue->direction = {1.0f, 0.0f};
@@ -46,8 +46,8 @@ Game::Game(int animationSteps, int left, int top, int right, int bottom) {
         balls[i].isPocketed = false;
     }
 
-    cue = std::make_unique<Cue>();
-    table = std::make_unique<Table>();
+    cue = std::make_unique<GameObj::Cue>();
+    table = std::make_unique<GameObj::Table>();
 
     cue->position = {300.0f, 300.0f};
     cue->direction = {1.0f, 0.0f};
@@ -124,7 +124,7 @@ void Game::initBalls() {
         };
     }
     balls[0].speed = {0, 0};
-    balls[0].color = Color::WHITE;
+    balls[0].color = GameObj::Color::WHITE;
     balls[0].isPocketed = false;
     balls[0].radius = BALL_RADIUS;
     whiteBallInitialPosition = balls[0].position;
@@ -157,7 +157,7 @@ void Game::initBalls() {
             }
             
             balls[ballIdx].speed = {0, 0};
-            balls[ballIdx].color = static_cast<Color>(ballIdx);
+            balls[ballIdx].color = static_cast<GameObj::Color>(ballIdx);
             balls[ballIdx].isPocketed = false;
             balls[ballIdx].radius = BALL_RADIUS;
             
@@ -217,7 +217,7 @@ void Game::resetGame() {
 
 void Game::checkBoundaries() {
     for (int i = 0; i < BALLS_COUNT; i++) {
-        Ball& ball = balls[i];
+        GameObj::Ball& ball = balls[i];
         float r = ball.radius;
 
         // Левая стенка
@@ -254,8 +254,8 @@ void Game::updateBallCollisions() {
         
         for (int i = 0; i < BALLS_COUNT; i++) {
             for (int j = i + 1; j < BALLS_COUNT; j++) {
-                Ball& ballA = balls[i];
-                Ball& ballB = balls[j];
+                GameObj::Ball& ballA = balls[i];
+                GameObj::Ball& ballB = balls[j];
 
                 // Вектор между центрами
                 float dx = ballB.position.first - ballA.position.first;
@@ -314,11 +314,11 @@ void Game::updateBallCollisions() {
 }
 
 
-void Game::calculateBallMovement(Ball& ball){
+void Game::calculateBallMovement(GameObj::Ball& ball){
     calculateBallMovement(ball, 1);
 }
 
-void Game::calculateBallMovement(Ball& ball, int steps) { //торможение шара
+void Game::calculateBallMovement(GameObj::Ball& ball, int steps) { //торможение шара
     
 
     if (ball.speed.first == 0 && ball.speed.second == 0) {
@@ -385,7 +385,7 @@ void Game::aimCue(int mouseX, int mouseY) {
     }
 
     cue->isActive = true;
-    Ball& whiteBall = balls[0];
+    GameObj::Ball& whiteBall = balls[0];
 
     // куда ударит кий
     float dx = whiteBall.position.first - mouseX;
@@ -444,6 +444,10 @@ void Game::shoot() {
 }
 
 void Game::update() {
+    update(1);
+}
+
+void Game::update(int steps) {
     // Обновление состояния игры только если есть движение
     if (isMoving) {
         for (int i = 0; i < BALLS_COUNT; i++) {
