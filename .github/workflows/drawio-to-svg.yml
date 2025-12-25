@@ -2,7 +2,6 @@ name: Update PNG from Drawio
 
 on:
   push:
-    branches: [main]
     paths:
       - '**.drawio'
 

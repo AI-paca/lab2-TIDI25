@@ -17,7 +17,7 @@ python main.py
 ```
 
 ---
-
+Architectur:
 
 ---
 ТЗ:
@@ -45,5 +45,4 @@ Pybind11 Wrapper | Используется библиотека pybind11 для
 ---
 P.s. если я хочу красивые галочки, то я найду красивые галочки. (галочки нагло похищены у [yusufklncc](https://github.com/yusufklncc))
 
-Изначальная архитектура проекта
-![lab2.png](diagrams/lab2.png)
+Architectur draft:
