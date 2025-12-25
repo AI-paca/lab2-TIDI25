@@ -46,3 +46,4 @@ Pybind11 Wrapper | Используется библиотека pybind11 для
 P.s. если я хочу красивые галочки, то я найду красивые галочки. (галочки нагло похищены у [yusufklncc](https://github.com/yusufklncc))
 
 Architectur draft:
+![architecture.png](diagrams/architecture.png)
