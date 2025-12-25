@@ -1,0 +1,110 @@
+<mxfile host="65bd71144e">
+    <diagram id="PoolGameArch_Fixed" name="Architecture-Redesign">
+        <mxGraphModel dx="1445" dy="751" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="User" value="Player" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#333232;strokeColor=#56517e;fontColor=#BEFFC7;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="150" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="PythonLayer" value="&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;PYTHON&lt;/font&gt;&lt;br&gt;&lt;font style=&quot;color: rgb(56, 134, 151);&quot; size=&quot;1&quot;&gt;(main.py)&lt;/font&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#333232;strokeColor=#56517e;fontColor=#388697;startSize=40;rounded=1;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="100" width="240" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="PyLoop" value="&lt;div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-wrap-mode: nowrap;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); color: rgb(190, 255, 199);&quot;&gt;while True:&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-wrap-mode: nowrap;&quot;&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); background-color: transparent;&quot;&gt;&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); white-space-collapse: preserve;&quot;&gt;&#x9;&lt;/span&gt;for event in pygame.event.get():&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251);&quot;&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251);&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); color: rgb(190, 255, 199);&quot;&gt;&lt;font color=&quot;rgba(0, 0, 0, 0)&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp;&lt;/font&gt;&lt;font style=&quot;color: rgb(190, 255, 199); text-wrap-mode: wrap;&quot;&gt;game.aim_cue #mousemotion&lt;/font&gt;&lt;/font&gt;&lt;/div&gt;&lt;div style=&quot;text-wrap-mode: wrap; scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251);&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); color: rgb(190, 255, 199);&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; game.shoot #click&lt;/font&gt;&lt;/div&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); text-wrap-mode: nowrap;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); color: rgb(190, 255, 199);&quot;&gt;&lt;span style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); white-space-collapse: preserve;&quot;&gt;&#x9;&lt;/span&gt;game.update&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; pygame.draw #render&lt;/font&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fillColor=#333232;strokeColor=none;fontColor=#BEFFC7;" parent="PythonLayer" vertex="1">
+                    <mxGeometry x="10" y="50" width="220" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="CppLib" value="&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;C++ LIBRARY &lt;/font&gt;&lt;font style=&quot;color: rgb(56, 134, 151);&quot;&gt;(.so / .dll)&lt;/font&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#2b2b2b;strokeColor=#56517e;fontColor=#388697;startSize=30;rounded=1;arcSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="410" y="100" width="670" height="440" as="geometry"/>
+                </mxCell>
+                <mxCell id="Bindings" value="&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;BINDINGS LAYER&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#388697&quot; size=&quot;1&quot;&gt;(src/bindings.cpp)&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#333232;strokeColor=#56517e;fontColor=#BEFFC7;dashed=1;" parent="CppLib" vertex="1">
+                    <mxGeometry x="30" y="70" width="140" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="BindText" value="Translates types:&lt;br&gt;List &amp;lt;-&amp;gt; std::vector&lt;br&gt;Tuple &amp;lt;-&amp;gt; Struct" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#388697;fontSize=10;" parent="Bindings" vertex="1">
+                    <mxGeometry x="10" y="144" width="120" height="48" as="geometry"/>
+                </mxCell>
+                <mxCell id="Comment1" value="&lt;font style=&quot;color: rgb(56, 134, 151);&quot;&gt;// Just a dumb wrapper&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=-15;strokeWidth=0;fontSize=10;" parent="Bindings" vertex="1">
+                    <mxGeometry y="30" width="100" height="16" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BEFFC7;" parent="CppLib" vertex="1">
+                    <mxGeometry x="210" y="70" width="190" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="Controller" value="&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;CONTROLLER&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#388697&quot; size=&quot;1&quot;&gt;(src/controller.cc)&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#388697&quot; size=&quot;1&quot;&gt;&lt;br&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(217, 174, 97);&quot; size=&quot;1&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-size: 12px;&quot;&gt;What should I do&lt;/font&gt;&lt;div style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251); font-size: 12px;&quot;&gt;&lt;font style=&quot;scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251);&quot;&gt;&amp;nbsp;with this event?&lt;/font&gt;&lt;/div&gt;&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#333232;strokeColor=#56517e;fontColor=#BEFFC7;" parent="CppLib" vertex="1">
+                    <mxGeometry x="225" y="110" width="160" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="InterfaceLabel" value="&amp;lt;&amp;lt;IGameController&amp;gt;&amp;gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#388697;fontSize=11;" parent="CppLib" vertex="1">
+                    <mxGeometry x="225" y="80" width="160" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="GameCore" value="&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;GAME CORE&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#388697&quot; size=&quot;1&quot;&gt;(src/game.cc)&lt;/font&gt;&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#333232;strokeColor=#56517e;fontColor=#BEFFC7;shadow=1;" parent="CppLib" vertex="1">
+                    <mxGeometry x="450" y="70" width="180" height="360" as="geometry"/>
+                </mxCell>
+                <mxCell id="PhysicsText" value="&lt;font style=&quot;color: rgb(56, 134, 151);&quot;&gt;- physics&lt;br&gt;- collision&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(56, 134, 151);&quot;&gt;- etc&lt;br&gt;&lt;/font&gt;&lt;div style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251);&quot;&gt;&lt;br style=&quot;color: rgb(63, 63, 63); scrollbar-color: rgb(226, 226, 226) rgb(251, 251, 251);&quot;&gt;&lt;/div&gt;&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=#388697;fontSize=10;" parent="GameCore" vertex="1">
+                    <mxGeometry x="20" y="60" width="150" height="48.29" as="geometry"/>
+                </mxCell>
+                <mxCell id="Comment2" value="&lt;font style=&quot;color: rgb(56, 134, 151);&quot;&gt;//Math happens here&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=0;strokeWidth=0;fontSize=10;" parent="GameCore" vertex="1">
+                    <mxGeometry x="20" y="30" width="140" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="GameObjs" value="&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;DATA&lt;/font&gt;&lt;div&gt;&lt;font color=&quot;#388697&quot; size=&quot;1&quot;&gt;(src/GameObj.h)&lt;/font&gt;&lt;/div&gt;" style="swimlane;whiteSpace=wrap;html=1;fillColor=#D9AE61;strokeColor=#56517e;fontColor=#BEFFC7;startSize=30;dashed=1;gradientColor=none;gradientDirection=radial;swimlaneFillColor=none;" parent="GameCore" vertex="1">
+                    <mxGeometry x="10" y="220" width="160" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="StructBalls" value="struct Ball" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9AE61;strokeColor=#56517e;fontColor=#BEFFC7;fontSize=10;" parent="GameObjs" vertex="1">
+                    <mxGeometry x="20" y="40" width="120" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="StructCue" value="struct Cue" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9AE61;strokeColor=#56517e;fontColor=#BEFFC7;fontSize=10;" parent="GameObjs" vertex="1">
+                    <mxGeometry x="20" y="70" width="120" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="StructTable" value="struct Table" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9AE61;strokeColor=#56517e;fontColor=#BEFFC7;fontSize=10;" parent="GameObjs" vertex="1">
+                    <mxGeometry x="20" y="100" width="120" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="Call3" value="&lt;span style=&quot;background-color: rgb(51, 50, 50);&quot;&gt;&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;update&lt;/font&gt;&lt;/span&gt;" style="edgeStyle=none;html=1;fillColor=#333232;strokeColor=#388697;fontColor=#388697;strokeWidth=2;exitX=0.995;exitY=0.346;exitDx=0;exitDy=0;exitPerimeter=0;shadow=1;" parent="CppLib" source="Controller" edge="1">
+                    <mxGeometry x="-0.0029" relative="1" as="geometry">
+                        <mxPoint x="385.0000000000001" y="190.73000000000005" as="sourcePoint"/>
+                        <mxPoint x="470" y="172" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="8" value="" style="edgeStyle=none;html=1;entryX=1.004;entryY=0.668;entryDx=0;entryDy=0;entryPerimeter=0;strokeColor=#388697;dashed=1;" parent="CppLib" target="Controller" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="460" y="230" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="Call2" value="&lt;font style=&quot;background-color: rgb(190, 255, 199); color: rgb(56, 134, 151);&quot;&gt;Calls&lt;/font&gt;" style="edgeStyle=none;html=1;entryX=-0.001;entryY=0.338;entryDx=0;entryDy=0;fillColor=#333232;strokeColor=#BEFFC7;fontColor=#388697;strokeWidth=2;entryPerimeter=0;" parent="CppLib" target="7" edge="1">
+                    <mxGeometry x="-0.031" y="-15" relative="1" as="geometry">
+                        <mxPoint x="171" y="155" as="sourcePoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="11" value="&lt;font style=&quot;background-color: rgb(190, 255, 199); color: rgb(56, 134, 151);&quot;&gt;Wraps&lt;/font&gt;" style="html=1;fillColor=#333232;strokeColor=#BEFFC7;fontColor=#388697;strokeWidth=2;exitX=-0.001;exitY=0.656;exitDx=0;exitDy=0;exitPerimeter=0;dashed=1;" parent="CppLib" source="7" edge="1">
+                    <mxGeometry x="0.0479" y="16" relative="1" as="geometry">
+                        <mxPoint x="125" y="262" as="sourcePoint"/>
+                        <mxPoint x="172" y="234" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="13" value="&lt;font style=&quot;color: rgb(190, 255, 199); background-color: rgb(51, 50, 50);&quot;&gt;return&amp;nbsp;&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;color: rgb(190, 255, 199); background-color: rgb(51, 50, 50);&quot;&gt;const&lt;/font&gt;&lt;span style=&quot;background-color: light-dark(rgb(51, 50, 50), rgb(195, 194, 194));&quot;&gt;&amp;nbsp;&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;data&lt;/font&gt;&lt;/span&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;" parent="CppLib" vertex="1">
+                    <mxGeometry x="390" y="210" width="70" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="15" style="edgeStyle=none;html=1;fontColor=#D9AE61;strokeColor=#D9AE61;dashed=1;exitX=1.001;exitY=0.891;exitDx=0;exitDy=0;exitPerimeter=0;entryX=-0.005;entryY=0.555;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="CppLib" source="Controller" target="GameCore">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="448" y="270" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="16" value="&lt;font style=&quot;color: rgb(217, 174, 97); background-color: rgb(60, 48, 27);&quot;&gt;getdata&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="15">
+                    <mxGeometry x="-0.0033" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="Input" value="" style="edgeStyle=none;html=1;fillColor=#333232;strokeColor=#56517e;fontColor=#388697;endArrow=classic;" parent="1" source="User" target="PythonLayer" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="Call1" value="&lt;span style=&quot;background-color: rgb(190, 255, 199);&quot;&gt;&lt;font style=&quot;color: rgb(56, 134, 151);&quot;&gt;Calls&lt;/font&gt;&lt;/span&gt;" style="edgeStyle=none;html=1;exitX=1.014;exitY=0.683;exitDx=0;exitDy=0;entryX=0.011;entryY=0.192;entryDx=0;entryDy=0;fillColor=#333232;strokeColor=#BEFFC7;fontColor=#388697;strokeWidth=2;exitPerimeter=0;entryPerimeter=0;" parent="1" source="PyLoop" target="Bindings" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="Return3" value="&lt;font style=&quot;background-color: rgb(190, 255, 199); color: rgb(56, 134, 151);&quot;&gt;return]&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;html=1;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1.005;entryY=0.866;entryDx=0;entryDy=0;fillColor=#333232;strokeColor=#BEFFC7;fontColor=#388697;dashed=1;entryPerimeter=0;curved=1;" parent="1" source="Bindings" target="PyLoop" edge="1">
+                    <mxGeometry x="-0.0016" y="5" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

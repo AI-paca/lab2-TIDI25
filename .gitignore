@@ -5,3 +5,4 @@ main_test
 *.o
 build/
 .cache/
+README copy.md
