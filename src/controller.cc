@@ -1,7 +1,5 @@
 #include "controller.h"
 
-// === КОНСТРУКТОРЫ ===
-
 GameController::GameController(int animationSteps) 
     : GameController(animationSteps, 800, 600) 
 {

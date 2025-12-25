@@ -4,3 +4,4 @@ lab2-TIDI25.code-workspace
 main_test
 *.o
 build/
+.cache/

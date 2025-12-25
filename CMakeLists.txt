@@ -13,6 +13,7 @@ set(SOURCES
     src/game.cc 
     src/controller.cc 
     src/bindings.cc 
+)
 
 # Создаем модуль Python (он сам добавит префикс и расширение .so/.pyd)
 pybind11_add_module(pool_game ${SOURCES})
