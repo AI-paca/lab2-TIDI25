@@ -18,6 +18,7 @@ python main.py
 
 ---
 Architectur:
+![architecture.png](diagrams/architecture.png)
 
 ---
 ТЗ:
@@ -46,4 +47,4 @@ Pybind11 Wrapper | Используется библиотека pybind11 для
 P.s. если я хочу красивые галочки, то я найду красивые галочки. (галочки нагло похищены у [yusufklncc](https://github.com/yusufklncc))
 
 Architectur draft:
-![architecture.png](diagrams/architecture.png)
+![lab2.png](diagrams/lab2.png)

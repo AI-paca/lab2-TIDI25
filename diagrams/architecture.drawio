@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="PoolGameArch_Fixed" name="Architecture-Redesign">
-        <mxGraphModel dx="391" dy="250" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+        <mxGraphModel dx="44" dy="40" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -55,7 +55,7 @@
                 <mxCell id="StructTable" value="struct Table" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#D9AE61;strokeColor=#56517e;fontColor=#BEFFC7;fontSize=10;" parent="GameObjs" vertex="1">
                     <mxGeometry x="20" y="100" width="120" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="Call3" value="&lt;span style=&quot;background-color: rgb(51, 50, 50);&quot;&gt;&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;update&lt;/font&gt;&lt;/span&gt;" style="edgeStyle=none;html=1;fillColor=#333232;strokeColor=#388697;fontColor=#388697;strokeWidth=2;exitX=0.995;exitY=0.346;exitDx=0;exitDy=0;exitPerimeter=0;shadow=1;" parent="CppLib" source="Controller" edge="1">
+                <mxCell id="Call3" value="&lt;span style=&quot;&quot;&gt;&lt;font style=&quot;color: rgb(190, 255, 199);&quot;&gt;update&lt;/font&gt;&lt;/span&gt;" style="edgeStyle=none;html=1;fillColor=#333232;strokeColor=#388697;fontColor=#388697;strokeWidth=2;exitX=0.995;exitY=0.346;exitDx=0;exitDy=0;exitPerimeter=0;shadow=1;labelBackgroundColor=#333232;" parent="CppLib" source="Controller" edge="1">
                     <mxGeometry x="-0.0029" relative="1" as="geometry">
                         <mxPoint x="385.0000000000001" y="190.73000000000005" as="sourcePoint"/>
                         <mxPoint x="470" y="172" as="targetPoint"/>
@@ -88,7 +88,7 @@
                         <mxPoint x="448" y="270" as="targetPoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="16" value="&lt;font style=&quot;color: rgb(217, 174, 97); background-color: rgb(60, 48, 27);&quot;&gt;getdata&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="15" vertex="1" connectable="0">
+                <mxCell id="16" value="&lt;font style=&quot;color: rgb(217, 174, 97);&quot;&gt;getdata&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];labelBackgroundColor=#3C301B;" parent="15" vertex="1" connectable="0">
                     <mxGeometry x="-0.0033" relative="1" as="geometry">
                         <mxPoint x="-2" as="offset"/>
                     </mxGeometry>
