@@ -16,6 +16,16 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("My Physics Lab (correct catch-up)")
 clock = pygame.time.Clock()
 
+# Размеры стола (70% от размера окна)
+TABLE_WIDTH = int(WIDTH * 0.7)
+TABLE_HEIGHT = int(HEIGHT * 0.7)
+
+# Координаты углов стола
+TABLE_LEFT = int(WIDTH * 0.15)
+TABLE_TOP = int(HEIGHT * 0.15)
+TABLE_RIGHT = TABLE_LEFT + TABLE_WIDTH
+TABLE_BOTTOM = TABLE_TOP + TABLE_HEIGHT
+
 # Шрифт для показа FPS
 font = pygame.font.Font(None, 36)
 
@@ -107,7 +117,8 @@ class Table(ctypes.Structure):
     _fields_ = [
         ("leftTop", ctypes.c_int * 2),  # pair<int, int>
         ("rightBottom", ctypes.c_int * 2),  # pair<int, int>
-        ("frictionCoefficient", ctypes.c_float)
+        ("frictionCoefficient", ctypes.c_float),
+        ("borderThickness", ctypes.c_int)
     ]
 
 # Функция для получения данных из C++ через массив
@@ -158,15 +169,17 @@ def get_cpp_table_data():
     leftTop = (ctypes.c_int * 2)()
     rightBottom = (ctypes.c_int * 2)()
     friction = ctypes.c_float()
+    borderThickness = ctypes.c_int()
 
     # Вызываем C++ функцию для получения данных стола
-    libgame.get_table(leftTop, rightBottom, ctypes.byref(friction))
+    libgame.get_table(leftTop, rightBottom, ctypes.byref(friction), ctypes.byref(borderThickness))
 
     # Создаем и возвращаем объект Table
     table = Table()
     table.leftTop = leftTop
     table.rightBottom = rightBottom
     table.frictionCoefficient = friction.value
+    table.borderThickness = borderThickness.value
     return table
 
 # Функция для получения данных кия из C++
@@ -179,8 +192,8 @@ def get_cpp_cue_data():
             return None
     return None
 
-# Инициализировать C++ контроллер
-libgame.create_game_controller(TARGET_FPS)
+# Инициализировать C++ контроллер с координатами стола
+libgame.create_game_controller(TARGET_FPS, TABLE_LEFT, TABLE_TOP, TABLE_RIGHT, TABLE_BOTTOM)
 
 # ==========================================
 # ГЛАВНЫЙ ЦИКЛ ИГРЫ
@@ -234,8 +247,15 @@ while running:
         # Draw table (green felt)
         pygame.draw.rect(screen, (0, 100, 0), (left, top, width, height))
 
-        # Draw table borders (brown wood)
-        pygame.draw.rect(screen, (139, 69, 19), (left, top, width, height), 10)
+        # Draw table borders (brown wood) - outside the table
+        # Используем ширину бортика из данных стола
+        border_width = table_data.borderThickness
+        
+        # Рисуем бортик снаружи стола (не пересекая его)
+        pygame.draw.rect(screen, (139, 69, 19), 
+                        (left - border_width, top - border_width, 
+                         width + border_width * 2, height + border_width * 2), 
+                        border_width)
 
         # Display table info
         table_info = f"Table: ({left},{top}) to ({right},{bottom})"

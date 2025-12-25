@@ -1,8 +1,15 @@
 #include "controller.h"
 
-// Реализация конструктора
+// Реализация конструкторов
 GameController::GameController(int animationSteps) {
     game = new Game(animationSteps);
+    // инициализация
+    // определить единую систему координат для всего проекта
+    // понять где тут начало, а где конец координат (вдруг эту библиотеку запускает в на чем-то где 0, 0 это центр или левый нижний угол или правый верхний, моя библиотека вообще хз кто и где её запускает)
+}
+
+GameController::GameController(int animationSteps, int left, int top, int right, int bottom) {
+    game = new Game(animationSteps, left, top, right, bottom);
     // инициализация
     // определить единую систему координат для всего проекта
     // понять где тут начало, а где конец координат (вдруг эту библиотеку запускает в на чем-то где 0, 0 это центр или левый нижний угол или правый верхний, моя библиотека вообще хз кто и где её запускает)
@@ -95,7 +102,7 @@ const void* GameController::getCue() {
 
 
 // Метод для получения данных стола
-void GameController::getTable(int* leftTop, int* rightBottom, float* friction) {
+void GameController::getTable(int* leftTop, int* rightBottom, float* friction, int* borderThickness) {
     if (!game || !game->getTable()) {
         return;
     }
@@ -106,6 +113,7 @@ void GameController::getTable(int* leftTop, int* rightBottom, float* friction) {
     rightBottom[0] = table->rightBottom.first;
     rightBottom[1] = table->rightBottom.second;
     *friction = table->frictionCoefficient;
+    *borderThickness = table->borderThickness;
 }
 
 /////////////////////////////////////////////////
@@ -125,11 +133,11 @@ void GameController::update() {
 // Глобальный контроллер
 static GameController* g_controller = nullptr;
 
-extern "C" void create_game_controller(int steps) {
+extern "C" void create_game_controller(int steps, int left, int top, int right, int bottom) {
     if (g_controller) {
         delete g_controller;
     }
-    g_controller = new GameController(steps);
+    g_controller = new GameController(steps, left, top, right, bottom);
     g_controller->start();
 }
 
@@ -158,9 +166,9 @@ extern "C" const void* get_cue() {
     return g_controller->getCue();
 }
 
-extern "C" void get_table(int* leftTop, int* rightBottom, float* friction) {
+extern "C" void get_table(int* leftTop, int* rightBottom, float* friction, int* borderThickness) {
     if (g_controller) {
-        g_controller->getTable(leftTop, rightBottom, friction);
+        g_controller->getTable(leftTop, rightBottom, friction, borderThickness);
     }
 }
 

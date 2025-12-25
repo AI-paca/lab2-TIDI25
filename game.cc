@@ -13,27 +13,8 @@ Game::Game(int animationSteps) {
     for (int i = 0; i < 10; i++) {
         balls[i].radius = 10;
         balls[i].speed = {0, 0};
-        balls[i].position = {100 + i * 20, 200 + i * 10};
         balls[i].isPocketed = false;
     }
-
-    // Биток (белый шар) - специальная инициализация
-    balls[0].position = {200, 100};
-    balls[0].speed = {0, 0};
-    balls[0].color = Color::WHITE;
-
-    whiteBallInitialPosition = balls[0].position;
-
-    // Остальные шары по порядку
-    balls[1].color = Color::YELLOW;     // 1: жёлтый
-    balls[2].color = Color::BLUE;       // 2: синий
-    balls[3].color = Color::RED;        // 3: красный
-    balls[4].color = Color::PURPLE;     // 4: фиолетовый
-    balls[5].color = Color::ORANGE;     // 5: оранжевый
-    balls[6].color = Color::GREEN;      // 6: зелёный
-    balls[7].color = Color::MAROON;     // 7: бордовый
-    balls[8].color = Color::BLACK;      // 8: чёрный
-    balls[9].color = Color::YELLOW_STRIPED; // 9: жёлтый с полосой
 
     cue = std::make_unique<Cue>();
     table = std::make_unique<Table>();
@@ -44,10 +25,44 @@ Game::Game(int animationSteps) {
     cue->isActive = true; //default
 
     table->leftTop = {50, 50};
-    table->rightBottom = {750, 500};
+    table->rightBottom = {750, 1000};
     table->frictionCoefficient = 0.015f;
+    table->borderThickness = balls[0].radius * 2; // ширина бортика = диаметру шара
 
+    // Инициализируем лузы и шары с правильной расстановкой
     initPockets();
+    initBalls();
+}
+
+Game::Game(int animationSteps, int left, int top, int right, int bottom) {
+    // Инициализация игры с заданными координатами стола
+    time  = animationSteps; // количество шагов анимации
+    isMoving = false;
+
+    // Инициализация массива шаров (стандартный набор Aramith)
+    for (int i = 0; i < 10; i++) {
+        balls[i].radius = 10;
+        balls[i].speed = {0, 0};
+        balls[i].isPocketed = false;
+    }
+
+    cue = std::make_unique<Cue>();
+    table = std::make_unique<Table>();
+
+    cue->position = {300.0f, 300.0f};
+    cue->direction = {1.0f, 0.0f};
+    cue->force = 0.0f; 
+    cue->isActive = true; //default
+
+    // Устанавливаем координаты стола из параметров
+    table->leftTop = {left, top};
+    table->rightBottom = {right, bottom};
+    table->frictionCoefficient = 0.015f;
+    table->borderThickness = balls[0].radius * 2; // ширина бортика = диаметру шара
+
+    // Инициализируем лузы и шары с правильной расстановкой
+    initPockets();
+    initBalls();
 }
 
 void Game::initPockets() {
@@ -74,6 +89,80 @@ void Game::initPockets() {
     for (int i = 0; i < POCKETS_COUNT; i++) {
         pockets[i].position = positions[i];
         pockets[i].radius = pocketRadius;
+    }
+}
+
+void Game::initBalls() {
+    float tableWidth = table->rightBottom.first - table->leftTop.first;
+    float tableHeight = table->rightBottom.second - table->leftTop.second;
+    
+    bool horizontal = tableWidth >= tableHeight;
+    float majorAxis = horizontal ? tableWidth : tableHeight;
+    
+    // === ГЕОМЕТРИЧЕСКИЕ КОНСТАНТЫ ===
+    const float BALL_RADIUS = 10.0f;
+    const float BALL_DIAMETER = BALL_RADIUS * 2.0f;
+    const float GAP = 1.0f; // Маленький зазор между шарами (чтобы не слипались)
+    
+    // Расстояние между центрами шаров в одном ряду
+    const float SPACING_IN_ROW = BALL_DIAMETER + GAP;
+    
+    // Расстояние между рядами (высота равностороннего треугольника)
+    // h = a * √3 / 2, где a = расстояние между центрами
+    const float SPACING_BETWEEN_ROWS = SPACING_IN_ROW * std::sqrt(3.0f) / 2.0f;
+    
+    // === БИТОК (3/4 большой стороны) ===
+    if (horizontal) {
+        balls[0].position = {
+            table->leftTop.first + majorAxis * 0.75f,
+            table->leftTop.second + tableHeight / 2.0f
+        };
+    } else {
+        balls[0].position = {
+            table->leftTop.first + tableWidth / 2.0f,
+            table->leftTop.second + majorAxis * 0.75f
+        };
+    }
+    balls[0].speed = {0, 0};
+    balls[0].color = Color::WHITE;
+    balls[0].isPocketed = false;
+    balls[0].radius = BALL_RADIUS;
+    whiteBallInitialPosition = balls[0].position;
+    
+    // === РОМБ (1/4 большой стороны) ===
+    float baseX, baseY;
+    if (horizontal) {
+        baseX = table->leftTop.first + majorAxis * 0.25f;
+        baseY = table->leftTop.second + tableHeight / 2.0f;
+    } else {
+        baseX = table->leftTop.first + tableWidth / 2.0f;
+        baseY = table->leftTop.second + majorAxis * 0.25f;
+    }
+    
+    int rows[] = {1, 2, 3, 2, 1}; // Ромб из 9 шаров
+    int ballIdx = 1;
+    
+    for (int row = 0; row < 5 && ballIdx < BALLS_COUNT; row++) {
+        for (int col = 0; col < rows[row] && ballIdx < BALLS_COUNT; col++) {
+            // Смещение вдоль направления игры (от битка к ромбу)
+            float offsetPrimary = (row - 2) * SPACING_BETWEEN_ROWS;
+            
+            // Смещение поперек направления игры (вверх-вниз или влево-вправо)
+            float offsetSecondary = (col - (rows[row] - 1) / 2.0f) * SPACING_IN_ROW;
+            
+            if (horizontal) {
+                balls[ballIdx].position = {baseX + offsetPrimary, baseY + offsetSecondary};
+            } else {
+                balls[ballIdx].position = {baseX + offsetSecondary, baseY + offsetPrimary};
+            }
+            
+            balls[ballIdx].speed = {0, 0};
+            balls[ballIdx].color = static_cast<Color>(ballIdx);
+            balls[ballIdx].isPocketed = false;
+            balls[ballIdx].radius = BALL_RADIUS;
+            
+            ballIdx++;
+        }
     }
 }
 
@@ -108,7 +197,22 @@ void Game::checkPockets() {
 }
 
 void Game::resetGame() {
-    // Внутренний сброс игры
+    // Сбрасываем все шары
+    for (int i = 0; i < BALLS_COUNT; i++) {
+        balls[i].speed = {0, 0};
+        balls[i].isPocketed = false;
+    }
+    
+    // Переставляем шары в начальные позиции
+    initBalls();
+    
+    // Сбрасываем состояние игры
+    isMoving = false;
+    time = 0;
+    
+    // Сбрасываем кий
+    cue->force = 0.0f;
+    cue->isActive = true;
 }
 
 void Game::checkBoundaries() {

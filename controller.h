@@ -6,8 +6,9 @@
 
 class GameController : public IGameController {
 public:
-    // Конструктор
+    // Конструкторы
     GameController(int animationSteps);
+    GameController(int animationSteps, int left, int top, int right, int bottom);
 
     // Основные методы интерфейса
     void start() override;
@@ -18,7 +19,7 @@ public:
     int getBallsAsArray(void* balls, int max_count) override;
     int getPocketsAsArray(void* pockets, int max_count) override;
     const void* getCue() override;
-    void getTable(int* leftTop, int* rightBottom, float* friction) override;
+    void getTable(int* leftTop, int* rightBottom, float* friction, int* borderThickness) override;
 
     // Новые методы для управления кием
     void aimCue(int mouseX, int mouseY) override;

@@ -33,7 +33,7 @@ public:
     virtual int getPocketsAsArray(void* pockets, int max_count) = 0;
 
     virtual const void* getCue() = 0;
-    virtual void getTable(int* leftTop, int* rightBottom, float* friction) = 0;
+    virtual void getTable(int* leftTop, int* rightBottom, float* friction, int* borderThickness) = 0;
 
     virtual void aimCue(int mouseX, int mouseY) = 0;
     virtual void shootCue() = 0;
@@ -43,11 +43,11 @@ public:
 // EXTERN C: ЭКСПОРТ ДЛЯ PYTHON
 // ==========================================
 // Объявления функций для Python (реализация в controller.cc)
-extern "C" void create_game_controller(int steps);
+extern "C" void create_game_controller(int steps, int left, int top, int right, int bottom);
 extern "C" int get_balls_array(void* balls, int max_count);
 extern "C" int get_pockets_array(void* pockets, int max_count);
 extern "C" const void* get_cue();
-extern "C" void get_table(int* leftTop, int* rightBottom, float* friction);
+extern "C" void get_table(int* leftTop, int* rightBottom, float* friction, int* borderThickness);
 extern "C" void update_game();
 extern "C" void aim_cue(int mouseX, int mouseY);
 extern "C" void shoot_cue();

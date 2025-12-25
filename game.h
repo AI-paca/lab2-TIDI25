@@ -36,7 +36,7 @@ public:
         std::pair<int, int> leftTop; // левый верхний угол стола {x, y}
         std::pair<int, int> rightBottom; // правый нижний угол стола
         float frictionCoefficient; // коэффициент трения
-        //ширина бортика привязанная к радиусу лузы и размеру стола 
+        int borderThickness; // ширина бортика = диаметру шара
     };
     
     //структура лузы{
@@ -45,8 +45,9 @@ public:
     //  }
 
 
-    // Конструктор
+    // Конструкторы
     Game(int animationSteps);
+    Game(int animationSteps, int left, int top, int right, int bottom);
 
     // Основные методы
     void resetGame();
@@ -63,6 +64,7 @@ public:
     void shoot();
     void initPockets();
     void checkPockets();
+    void initBalls();
 
     int aSteps; // количество шагов анимации (для расчета скорости и т.д.)
 
