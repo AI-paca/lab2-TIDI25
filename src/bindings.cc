@@ -2,11 +2,30 @@
 #include <pybind11/stl.h>
 #include "interfaces.h"
 #include "GameObj.h"
+#include "vec.h"
 
 namespace py = pybind11;
 
 PYBIND11_MODULE(pool_game, m) {
     m.doc() = "Pool Game Physics Engine";
+
+    // 0. vec type binding
+    py::class_<vec>(m, "vec")
+        .def(py::init<>())
+        .def(py::init<float, float>())
+        .def_readwrite("x", &vec::x)
+        .def_readwrite("y", &vec::y)
+        .def("__repr__", [](const vec& v) {
+            return "vec(" + std::to_string(v.x) + ", " + std::to_string(v.y) + ")";
+        })
+        .def("__getitem__", [](const vec& v, size_t i) {
+            if (i == 0) return v.x;
+            if (i == 1) return v.y;
+            throw py::index_error("vec index out of range");
+        })
+        .def("__len__", [](const vec& v) {
+            return 2;
+        });
 
     // 1. Enum Color
     py::enum_<GameObj::Color>(m, "Color")

@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <memory>
-#include <utility>
 #include "GameObj.h"
 
 class Game {
@@ -44,7 +43,7 @@ private:
 
     float time;
     bool isMoving;
-    std::pair<int, int> whiteBallInitialPosition;
+    vec whiteBallInitialPosition;
 
     void initBalls();
     void initPockets();
