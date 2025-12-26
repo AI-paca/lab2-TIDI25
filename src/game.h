@@ -52,8 +52,8 @@ private:
     void checkCollisions();    
     void checkPockets();       
     void updateBallCollisions();
+    float getTimeToImpact(GameObj::Ball A, GameObj::Ball B);
     
-    void calculateBallMovement(GameObj::Ball& ball, int steps);
     void calculateBallMovement(GameObj::Ball& ball);
     void transferImpulse(GameObj::Cue& cue, GameObj::Ball& ball);
     void calculateCueVelocityFromMouse(int mouseX, int mouseY);

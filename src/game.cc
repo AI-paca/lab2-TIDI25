@@ -1,8 +1,8 @@
 // Реализация класса игры бильярд
 #include "game.h"
+#include "GameObj.h"
 #include <cmath>
 #include <iostream>
-
 
 Game::Game(int animationSteps) {
     // Инициализация игры
@@ -21,7 +21,7 @@ Game::Game(int animationSteps) {
 
     cue->position = vec(300.0f, 300.0f);
     cue->direction = vec(1.0f, 0.0f);
-    cue->force = 0.0f; 
+    cue->force = 0.0f;
     cue->isActive = true; //default
 
     table->leftTop = vec(50, 50);
@@ -51,7 +51,7 @@ Game::Game(int animationSteps, int left, int top, int right, int bottom) {
 
     cue->position = {300.0f, 300.0f};
     cue->direction = {1.0f, 0.0f};
-    cue->force = 0.0f; 
+    cue->force = 0.0f;
     cue->isActive = true; //default
 
     // Устанавливаем координаты стола из параметров
@@ -200,43 +200,47 @@ void Game::resetGame() {
         balls[i].speed = {0, 0};
         balls[i].isPocketed = false;
     }
-    
+
     // Переставляем шары в начальные позиции
     initBalls();
-    
+
     // Сбрасываем состояние игры
     isMoving = false;
     time = 0;
-    
+
     // Сбрасываем кий
     cue->force = 0.0f;
     cue->isActive = true;
 }
 
 void Game::checkBoundaries() {
+    float restitution = 0.3f; // Упругость бортов
     for (int i = 0; i < BALLS_COUNT; i++) {
         GameObj::Ball& ball = balls[i];
+        if (ball.isPocketed) continue;
+
         float r = ball.radius;
 
         // Левая стенка
-        if (ball.position.x - r < table->leftTop.x) {
-            ball.position.x = table->leftTop.x + r;
-            ball.speed.x = -ball.speed.x * 0.3f; // потеря энергии при ударе
+        if (ball.position.x < table->leftTop.x + r) {
+            ball.position.x = table->leftTop.x + r; // Выталкиваем
+            if (ball.speed.x < 0) ball.speed.x *= -restitution; // Отражаем
         }
         // Правая стенка
-        if (ball.position.x + r > table->rightBottom.x) {
+        else if (ball.position.x > table->rightBottom.x - r) {
             ball.position.x = table->rightBottom.x - r;
-            ball.speed.x = -ball.speed.x * 0.3f;
+            if (ball.speed.x > 0) ball.speed.x *= -restitution;
         }
+
         // Верхняя стенка
-        if (ball.position.y - r <  table->leftTop.y) {
+        if (ball.position.y < table->leftTop.y + r) {
             ball.position.y = table->leftTop.y + r;
-            ball.speed.y = -ball.speed.y * 0.3f;
+            if (ball.speed.y < 0) ball.speed.y *= -restitution;
         }
         // Нижняя стенка
-        if (ball.position.y + r > table->rightBottom.y) {
+        else if (ball.position.y > table->rightBottom.y - r) {
             ball.position.y = table->rightBottom.y - r;
-            ball.speed.y = -ball.speed.y * 0.3f;
+            if (ball.speed.y > 0) ball.speed.y *= -restitution;
         }
     }
 }
@@ -245,90 +249,45 @@ void Game::checkCollisions() {
 }
 
 void Game::updateBallCollisions() {
-    const int maxIterations = 8; //несколько проходов для стабильности при множественных столкновениях
+    for (int i = 0; i < BALLS_COUNT; i++) {
+        if (balls[i].isPocketed) continue;
 
-    for (int iter = 0; iter < maxIterations; iter++) {
-        bool hadCollision = false;
+        for (int j = i + 1; j < BALLS_COUNT; j++) {
+            if (balls[j].isPocketed) continue;
 
-        for (int i = 0; i < BALLS_COUNT; i++) {
-            for (int j = i + 1; j < BALLS_COUNT; j++) {
-                GameObj::Ball& ballA = balls[i];
-                GameObj::Ball& ballB = balls[j];
+            GameObj::Ball& A = balls[i];
+            GameObj::Ball& B = balls[j];
 
-                // Вектор между центрами
-                vec delta = ballB.position - ballA.position;
-                float distSq = delta.lengthSq();
+            vec delta = B.position - A.position;
+            float distSq = delta.lengthSq();
+            float radiusSum = A.radius + B.radius;
+            float radiusSumSq = radiusSum * radiusSum;
+            if (distSq < radiusSumSq && distSq > 0.0001f) {
+                float dist = std::sqrt(distSq);
+                vec normal = delta / dist;
 
-                float minDist = ballA.radius + ballB.radius;
-                float minDistSq = minDist * minDist;
+                // выталкивание
+                float overlap = radiusSum - dist;
+                vec separation = normal * (overlap * 0.5f);
+                A.position -= separation;
+                B.position += separation;
 
-                // Нет столкновения
-                if (distSq >= minDistSq || distSq < 0.0001f) {
-                    continue;
-                }
-
-                float distance = delta.length();
-                hadCollision = true;
-
-                // нормаль
-                vec normal = delta / distance;
-
-                float overlap = minDist - distance;
-                float separation = (overlap / 2.0f) + 0.001f; // небольшой зазор во избежание залипания
-
-                ballA.position = ballA.position - normal * separation;
-                ballB.position = ballB.position + normal * separation;
-
+                // отскок
                 // относительная скорость
-                vec vRel = ballA.speed - ballB.speed;
-
-                // проекция относительной скорости на нормаль
+                vec vRel = B.speed - A.speed;
                 float vn = vRel.dot(normal);
 
-                // если шары уже расходятся — не меняем скорости
-                if (vn <= 0.0f) {
-                    continue;
-                }
+                if (vn < 0) {
+                    float restitution = 0.9f;
+                    float impulseMagnitude = -(1.0f + restitution) * vn / 2.0f;
 
-                // обмен компонентами вдоль нормали
-                ballA.speed = ballA.speed - normal * vn;
-                ballB.speed = ballB.speed + normal * vn;
+                    vec impulse = normal * impulseMagnitude;
+                    A.speed -= impulse;
+                    B.speed += impulse;
+                }
             }
         }
-
-        // Если не было столкновений — выходим раньше
-        if (!hadCollision) {
-            break;
-        }
     }
-}
-
-
-void Game::calculateBallMovement(GameObj::Ball& ball){
-    calculateBallMovement(ball, 1);
-}
-
-
-void Game::calculateBallMovement(GameObj::Ball& ball, int steps) {
-    if (ball.speed.lengthSq() < 0.001f) {
-        ball.speed = {0, 0};
-        return;
-    }
-
-    float speed = ball.speed.length();
-    float friction = table->frictionCoefficient * gravity * steps; 
-
-    float newSpeed = speed - friction;
-    if (newSpeed <= 0) {
-        ball.speed = {0, 0};
-        return;
-    }
-
-    // Сохраняем направление, меняем скорость
-    ball.speed = ball.speed * (newSpeed / speed);
-
-    // Двигаем шар
-    ball.position += ball.speed;
 }
 
 int Game::sign(float x) {
@@ -336,6 +295,20 @@ int Game::sign(float x) {
     else return -1;
 }
 
+void Game::calculateBallMovement(GameObj::Ball& ball) {
+    if (ball.isPocketed) return;
+
+    float speed = ball.speed.length();
+    if (speed < 0.05f) { // Порог остановки чуть выше 0
+        ball.speed = {0, 0};
+        return;
+    }
+    float friction = table->frictionCoefficient * gravity;
+
+    float newSpeed = speed - friction;
+    if (newSpeed < 0) newSpeed = 0;
+    ball.speed = ball.speed.normalized() * newSpeed;
+}
 
 void Game::aimCue(int mouseX, int mouseY) {
     if (isMoving) {
@@ -353,7 +326,7 @@ void Game::aimCue(int mouseX, int mouseY) {
     // сила натяжения (через расстояние от мыши до шара)
     float distance = delta.length();
 
-    const float MAX_PULL_DISTANCE = 200.0f; 
+    const float MAX_PULL_DISTANCE = 200.0f;
     const float MAX_SHOT_SPEED = 50.0f;
 
     float clampedDistance = distance;
@@ -361,7 +334,7 @@ void Game::aimCue(int mouseX, int mouseY) {
         clampedDistance = MAX_PULL_DISTANCE;
     }
 
-    // куда полетит шар 
+    // куда полетит шар
     vec direction;
     if (distance > 0.001f) {
         direction = delta.normalized();
@@ -401,24 +374,34 @@ void Game::update() {
 }
 
 void Game::update(int steps) {
-    // Обновление состояния игры только если есть движение
-    if (isMoving) {
-        for (int i = 0; i < BALLS_COUNT; i++) {
-            calculateBallMovement(balls[i]);
-        }
-        updateBallCollisions();
-        checkBoundaries() ; // Проверка границ стола
-        checkPockets();     // Проверка попадания в лузы
-        time++; // Увеличиваем счетчик шагов
+    if (!isMoving) return;
+    const int SUB_STEPS = 8;
+    float subDt = 1.0f / SUB_STEPS; 
 
-        // Проверяем, остановились ли все шары
-        bool anyBallMoving = false;
+    for (int s = 0; s < SUB_STEPS; s++) {
+        // двигаем шары
         for (int i = 0; i < BALLS_COUNT; i++) {
-            if (balls[i].speed.lengthSq() > 0.0001f) {
-                anyBallMoving = true;
-                break;
+            if (!balls[i].isPocketed) {
+                balls[i].position += balls[i].speed * subDt;
             }
         }
-        isMoving = anyBallMoving;
+
+        // решаем столкновения, которые возникли после на под шагах 
+        updateBallCollisions();
+        checkBoundaries();
+    }
+
+    // трение и проверка луз
+    for (int i = 0; i < BALLS_COUNT; i++) {
+        calculateBallMovement(balls[i]);
+    }
+    checkPockets();
+
+    isMoving = false;
+    for (int i = 0; i < BALLS_COUNT; i++) {
+        if (balls[i].speed.lengthSq() > 0.001f) {
+            isMoving = true;
+            break;
+        }
     }
 }
