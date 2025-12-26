@@ -1,36 +1,26 @@
 import sys
 import os
 import pygame
-import time
 
-# путь к скомпилированной библиотеке (если она в корне или build/)
+# Подключаем путь к библиотеке
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 try:
     import pool_game
-except ImportError:
-    print("Ошибка: Не удалось импортировать модуль 'pool_game'. Сначала скомпилируйте проект!")
+except ImportError as e:
+    print(f"Не удалось импортировать 'pool_game'.\n{e}\n")
     sys.exit(1)
 
 # ==========================================
-# НАСТРОЙКИ
+# КОНСТАНТЫ И НАСТРОЙКИ
 # ==========================================
 pygame.init()
-WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pool Game (DIP Architecture)")
-clock = pygame.time.Clock()
-font = pygame.font.Font(None, 36)
+WIDTH, HEIGHT = 1000, 800
+TITLE = "Pool Game"
+TARGET_FPS = 60
+MS_PER_STEP = 1000 // TARGET_FPS
 
-# Настройка стола
-TABLE_WIDTH = int(WIDTH * 0.7)
-TABLE_HEIGHT = int(HEIGHT * 0.7)
-TABLE_LEFT = int(WIDTH * 0.15)
-TABLE_TOP = int(HEIGHT * 0.15)
-TABLE_RIGHT = TABLE_LEFT + TABLE_WIDTH
-TABLE_BOTTOM = TABLE_TOP + TABLE_HEIGHT
-
-# Маппинг цветов из C++ Enum в Pygame Colors
+# Цвета
 COLOR_MAP = {
     pool_game.Color.WHITE: (255, 255, 255),
     pool_game.Color.YELLOW: (255, 255, 50),
@@ -40,115 +30,157 @@ COLOR_MAP = {
     pool_game.Color.ORANGE: (255, 165, 0),
     pool_game.Color.GREEN: (50, 255, 50),
     pool_game.Color.MAROON: (128, 0, 0),
-    pool_game.Color.BLACK: (0, 0, 0),
+    pool_game.Color.BLACK: (20, 20, 20),
     pool_game.Color.YELLOW_STRIPED: (255, 255, 0)
 }
 
 # ==========================================
 # ИНИЦИАЛИЗАЦИЯ
 # ==========================================
-TARGET_FPS = 60
-MS_PER_STEP = 1000 // TARGET_FPS
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption(TITLE)
+clock = pygame.time.Clock()
+font = pygame.font.Font(None, 24)
 
-# === ДЕМОНСТРАЦИЯ ВСЕХ ТРЕХ ФАБРИЧНЫХ ФУНКЦИЙ ===
+# Дефолтные настройки внутри C++
+# controller = pool_game.create_controller(TARGET_FPS)
+# print("Controller: Default Init")
 
-# # Вариант 1: Дефолтный размер стола (800x600)
-# print("\n1. Создание контроллера с дефолтными размерами стола...")
-# controller1 = pool_game.create_controller(TARGET_FPS)
-# print(f"   Стол: {controller1.get_table().left_top} - {controller1.get_table().right_bottom}")
-
-# # Вариант 2: Автоцентрирование стола
-# print("\n2. Создание контроллера с автоцентрированием стола...")
+#Авто-центрирование по размеру окна (Ширина, Высота)
 controller = pool_game.create_controller(TARGET_FPS, WIDTH, HEIGHT)
-# table = controller2.get_table()
-# print(f"   Размер окна: {WIDTH}x{HEIGHT}")
-# print(f"   Стол: {table.left_top} - {table.right_bottom}")
+print(f"Controller: Auto-Center ({WIDTH}x{HEIGHT})")
 
-# # Вариант 3: Явные координаты (тот, который используется в игре)
-# print("\n3. Создание контроллера с явными координатами...")
-# controller3 = pool_game.create_controller(TARGET_FPS, TABLE_LEFT, TABLE_TOP, TABLE_RIGHT, TABLE_BOTTOM)
-# print(f"   Стол: {controller.get_table().left_top} - {controller.get_table().right_bottom}")
+# Ручное задание координат стола (Left, Top, Right, Bottom)
+# TABLE_WIDTH = int(WIDTH * 0.5)
+# TABLE_HEIGHT = int(HEIGHT * 0.7)
+# TABLE_LEFT = int(WIDTH * 0.15)
+# TABLE_TOP = int(HEIGHT * 0.15)
+# TABLE_RIGHT = TABLE_LEFT + TABLE_WIDTH
+# TABLE_BOTTOM = TABLE_TOP + TABLE_HEIGHT
 
+# controller = pool_game.create_controller(TARGET_FPS, TABLE_LEFT, TABLE_TOP, TABLE_RIGHT, TABLE_BOTTOM)
+# print(f"Controller: Manual Coordinates ({TABLE_LEFT}, {TABLE_TOP}) -> ({TABLE_RIGHT}, {TABLE_BOTTOM})")
+
+# ==========================================
+# ГЛАВНЫЙ ЦИКЛ
+# ==========================================
 running = True
 last_update_time = pygame.time.get_ticks()
 
 while running:
-    # 1. СОБЫТИЯ
+    # --- 1. ВВОД ---
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            controller.shoot_cue() 
-            print("Удар!")
+            if event.button == 1:
+                controller.shoot_cue()
         elif event.type == pygame.MOUSEMOTION:
             x, y = event.pos
-            controller.aim_cue(x, y) 
+            controller.aim_cue(x, y)
+        elif event.type == pygame.KEYDOWN:
+             if event.key == pygame.K_ESCAPE:
+                 print("GameEnd triggered")
+                 controller.reset_game()
 
-    # 2. cинхронизация
+    # --- 2. ФИЗИКА (Fixed Timestep) ---
     current_time = pygame.time.get_ticks()
     time_since_update = current_time - last_update_time
 
-    if time_since_update >= MS_PER_STEP:
-        steps_needed = int(time_since_update // MS_PER_STEP)
-        controller.update(steps_needed)
-        last_update_time += steps_needed * MS_PER_STEP
+    while time_since_update >= MS_PER_STEP:
+        controller.update(1) 
+        time_since_update -= MS_PER_STEP
+        last_update_time += MS_PER_STEP
 
-    # 3. ОТРИСОВКА
-    screen.fill((0, 0, 0))
+    # --- 3. РЕНДЕР ---
+    screen.fill((20, 20, 20)) 
 
-    # --- СТОЛ ---
-    table = controller.get_table() 
+    # Данные из C++
+    table = controller.get_table()
+    pockets = controller.get_pockets()
+    balls = controller.get_balls()
+    cue = controller.get_cue()
+
+    # Стол
     l, t = table.left_top
     r, b = table.right_bottom
-    w = r - l
-    h = b - t
-
-    # Сукно
+    w, h = r - l, b - t
+    
     pygame.draw.rect(screen, (0, 100, 0), (l, t, w, h))
-    # Бортики
     border = table.border_thickness
-    pygame.draw.rect(screen, (139, 69, 19), (l - border, t - border, w + border*2, h + border*2), border)
+    pygame.draw.rect(screen, (101, 67, 33), (l - border, t - border, w + border*2, h + border*2), int(border))
 
-    # --- ЛУЗЫ ---
-    pockets = controller.get_pockets() # Возвращает список объектов Pocket
+    # Лузы
     for p in pockets:
-        px, py = p.position # tuple unfolding
-        rad = int(p.radius)
-        pygame.draw.circle(screen, (0, 0, 0), (int(px), int(py)), rad)
+        px, py = p.position
+        pygame.draw.circle(screen, (0, 0, 0), (int(px), int(py)), int(p.radius))
 
-    # --- ШАРЫ ---
-    balls = controller.get_balls() # Возвращает список объектов Ball
+    # Шары
+    white_ball_pos = None
     for b in balls:
         if b.is_pocketed: continue
+        if b.color == pool_game.Color.WHITE:
+            white_ball_pos = b.position
 
-        bx, by = b.position # tuple unfolding
-        color = COLOR_MAP.get(b.color, (255, 255, 255))
-        pygame.draw.circle(screen, color, (int(bx), int(by)), b.radius)
+        bx, by = b.position
+        color = COLOR_MAP.get(b.color, (255, 0, 255))
+        pygame.draw.circle(screen, color, (int(bx), int(by)), int(b.radius))
+        # Блик
+        pygame.draw.circle(screen, (255, 255, 255), (int(bx - b.radius*0.3), int(by - b.radius*0.3)), int(b.radius*0.2))
 
-    # --- КИЙ ---
-    cue = controller.get_cue()
+    # === ТВОЙ ЛЮБИМЫЙ СТАРЫЙ КИЙ ===
     if cue.is_active:
         tip_x, tip_y = cue.position
         dir_x, dir_y = cue.direction
-        CUE_LEN = 150
+        CUE_LENGTH = 200
 
-        handle_x = tip_x - dir_x * CUE_LEN
-        handle_y = tip_y - dir_y * CUE_LEN
+        # Ручка кия
+        handle_x = tip_x - dir_x * CUE_LENGTH
+        handle_y = tip_y - dir_y * CUE_LENGTH
 
+        # Палка
         pygame.draw.line(screen, (139, 69, 19), (tip_x, tip_y), (handle_x, handle_y), 8)
+        # Наклейка
+        pygame.draw.circle(screen, (200, 200, 200), (int(tip_x), int(tip_y)), 4)
 
-        # Линия прицеливания (ищем белый шар в списке)
-        white_ball = next((b for b in balls if b.color == pool_game.Color.WHITE), None)
-        if white_ball:
-            wb_x, wb_y = white_ball.position
-            pygame.draw.line(screen, (255, 255, 255), (wb_x, wb_y), (wb_x + dir_x*100, wb_y + dir_y*100), 1)
+# === ТВОЙ ЛЮБИМЫЙ СТАРЫЙ КИЙ (FIXED EDITION) ===
+    if cue.is_active:
+        tip_x, tip_y = cue.position
+        dir_x, dir_y = cue.direction
+        CUE_LENGTH = 200
+
+        # 1. Ручка кия (Рисуем от носика назад)
+        handle_x = tip_x - dir_x * CUE_LENGTH
+        handle_y = tip_y - dir_y * CUE_LENGTH
+
+        # Палка
+        pygame.draw.line(screen, (139, 69, 19), (tip_x, tip_y), (handle_x, handle_y), 8)
+        # Наклейка
+        pygame.draw.circle(screen, (200, 200, 200), (int(tip_x), int(tip_y)), 4)
+
+        # 2. Линия прицеливания (от белого шара)
+        if white_ball_pos:
+            wb_x, wb_y = white_ball_pos
+            aim_length = cue.force * 10.0 
+            if aim_length < 30: 
+                aim_length = 30
+            
+            end_aim_x = wb_x + dir_x * aim_length
+            end_aim_y = wb_y + dir_y * aim_length
+            
+            # Рисуем линию (белая, толщина 2 для видимости)
+            pygame.draw.line(screen, (255, 255, 255), (wb_x, wb_y), (end_aim_x, end_aim_y), 2)
+        # Debug info
+        cue_info = f"Power: {cue.force:.1f}"
+        cue_surface = font.render(cue_info, True, (255, 255, 255))
+        screen.blit(cue_surface, (10, HEIGHT - 30))
 
     # UI
-    fps = int(clock.get_fps())
-    screen.blit(font.render(f"DIP: FPS: {fps}", True, (255, 255, 255)), (10, 10))
-    screen.blit(font.render("IGameController only!", True, (0, 255, 0)), (10, 50))
+    fps = clock.get_fps()
+    screen.blit(font.render(f"FPS: {int(fps)}", True, (0, 255, 0)), (10, 10))
+    screen.blit(font.render(f"Balls Left: {len([b for b in balls if not b.is_pocketed])-1}", True, (200, 200, 200)), (10, 30))
 
     pygame.display.flip()
-    clock.tick(TARGET_FPS)
+    clock.tick(TARGET_FPS) # <-- Это нужно, чтобы не сжечь видеокарту
 
 pygame.quit()

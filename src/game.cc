@@ -1,68 +1,47 @@
-// Реализация класса игры бильярд
 #include "game.h"
 #include "GameObj.h"
 #include <cmath>
-#include <iostream>
 
-Game::Game(int animationSteps) {
-    // Инициализация игры
-    time  = animationSteps; // количество шагов анимации
+void Game::initialize(int steps, float left, float top, float right, float bottom) {
+        // Инициализация игры
+    time = steps;
     isMoving = false;
+    isGameEnd = false;
 
-    // Инициализация массива шаров (стандартный набор Aramith)
-    for (int i = 0; i < 10; i++) {
-        balls[i].radius = 10;
+    table = std::make_unique<GameObj::Table>();
+    table->leftTop = vec(left, top);
+    table->rightBottom = vec(right, bottom);
+    table->frictionCoefficient = 0.015f;
+
+    float tableWidth = table->rightBottom.x - table->leftTop.x;
+    
+    float calculatedRadius = tableWidth * 0.0225f;    
+    if (calculatedRadius < 5.0f) calculatedRadius = 5.0f;
+
+    table->borderThickness = calculatedRadius * 2.0f;
+
+    cue = std::make_unique<GameObj::Cue>();
+    cue->position = vec(left + tableWidth/2, top + (bottom-top)/2); // Центр стола
+    cue->direction = vec(1.0f, 0.0f);
+    cue->force = 0.0f;
+    cue->isActive = true;
+
+    for (int i = 0; i < BALLS_COUNT; i++) {
+        balls[i].radius = calculatedRadius;
         balls[i].speed = vec(0, 0);
         balls[i].isPocketed = false;
     }
 
-    cue = std::make_unique<GameObj::Cue>();
-    table = std::make_unique<GameObj::Table>();
-
-    cue->position = vec(300.0f, 300.0f);
-    cue->direction = vec(1.0f, 0.0f);
-    cue->force = 0.0f;
-    cue->isActive = true; //default
-
-    table->leftTop = vec(50, 50);
-    table->rightBottom = vec(750, 1000);
-    table->frictionCoefficient = 0.015f;
-    table->borderThickness = balls[0].radius * 2; // ширина бортика = диаметру шара
-
-    // Инициализируем лузы и шары с правильной расстановкой
     initPockets();
-    initBalls();
+    initBalls(); 
+}
+
+Game::Game(int animationSteps) {
+    initialize(animationSteps, 50, 50, 750, 1000);
 }
 
 Game::Game(int animationSteps, int left, int top, int right, int bottom) {
-    // Инициализация игры с заданными координатами стола
-    time  = animationSteps; // количество шагов анимации
-    isMoving = false;
-
-    // Инициализация массива шаров (стандартный набор Aramith)
-    for (int i = 0; i < 10; i++) {
-        balls[i].radius = 10;
-        balls[i].speed = {0, 0};
-        balls[i].isPocketed = false;
-    }
-
-    cue = std::make_unique<GameObj::Cue>();
-    table = std::make_unique<GameObj::Table>();
-
-    cue->position = {300.0f, 300.0f};
-    cue->direction = {1.0f, 0.0f};
-    cue->force = 0.0f;
-    cue->isActive = true; //default
-
-    // Устанавливаем координаты стола из параметров
-    table->leftTop = vec(left, top);
-    table->rightBottom = vec(right, bottom);
-    table->frictionCoefficient = 0.015f;
-    table->borderThickness = balls[0].radius * 2; // ширина бортика = диаметру шара
-
-    // Инициализируем лузы и шары с правильной расстановкой
-    initPockets();
-    initBalls();
+    initialize(animationSteps, left, top, right, bottom);
 }
 
 void Game::initPockets() {
@@ -71,26 +50,23 @@ void Game::initPockets() {
     float right = table->rightBottom.x;
     float bottom = table->rightBottom.y;
     float centerX = (left + right) / 2.0f;
+    float pocketRadius = balls[0].radius * 1.6f;
 
-    // Радиус лузы = 1.2 × радиус шара
-    float pocketRadius = balls[0].radius * 1.2f;
-
-    // Массив координат 6 луз (центры ровно на рамке стола)
     vec positions[POCKETS_COUNT] = {
-        vec(left, top),        // 0: верхний левый угол (ровно на рамке)
-        vec(centerX, top),     // 1: верхний центр (ровно на верхней рамке)
-        vec(right, top),       // 2: верхний правый угол (ровно на рамке)
-        vec(left, bottom),     // 3: нижний левый угол (ровно на рамке)
-        vec(centerX, bottom),  // 4: нижний центр (ровно на нижней рамке)
-        vec(right, bottom)     // 5: нижний правый угол (ровно на рамке)
+        vec(left, top),        
+        vec(centerX, top),     
+        vec(right, top),       
+        vec(left, bottom),     
+        vec(centerX, bottom),  
+        vec(right, bottom)     
     };
 
-    // Создаём лузы циклом
     for (int i = 0; i < POCKETS_COUNT; i++) {
         pockets[i].position = positions[i];
         pockets[i].radius = pocketRadius;
     }
 }
+
 
 void Game::initBalls() {
     float tableWidth = table->rightBottom.x - table->leftTop.x;
@@ -100,8 +76,7 @@ void Game::initBalls() {
     float majorAxis = horizontal ? tableWidth : tableHeight;
 
     // === ГЕОМЕТРИЧЕСКИЕ КОНСТАНТЫ ===
-    const float BALL_RADIUS = 10.0f;
-    const float BALL_DIAMETER = BALL_RADIUS * 2.0f;
+    const float BALL_DIAMETER = balls[0].radius * 2.0f;
     const float GAP = 1.0f; // Маленький зазор между шарами (чтобы не слипались)
 
     // Расстояние между центрами шаров в одном ряду
@@ -123,10 +98,7 @@ void Game::initBalls() {
             table->leftTop.y + majorAxis * 0.75f
         );
     }
-    balls[0].speed = vec(0, 0);
     balls[0].color = GameObj::Color::WHITE;
-    balls[0].isPocketed = false;
-    balls[0].radius = BALL_RADIUS;
     whiteBallInitialPosition = balls[0].position;
 
     // === РОМБ (1/4 большой стороны) ===
@@ -158,9 +130,6 @@ void Game::initBalls() {
 
             balls[ballIdx].speed = vec(0, 0);
             balls[ballIdx].color = static_cast<GameObj::Color>(ballIdx);
-            balls[ballIdx].isPocketed = false;
-            balls[ballIdx].radius = BALL_RADIUS;
-
             ballIdx++;
         }
     }
@@ -168,27 +137,26 @@ void Game::initBalls() {
 
 void Game::checkPockets() {
     for (int i = 0; i < BALLS_COUNT; i++) {
-        if (balls[i].isPocketed) continue; // Пропускаем уже забитые
+        if (balls[i].isPocketed) continue; 
 
         for (int p = 0; p < POCKETS_COUNT; p++) {
-            vec delta = balls[i].position - pockets[p].position;
-            float distance = delta.length();
+            vec delta = balls[i].position - pockets[p].position;            
+            float distSq = delta.lengthSq(); // Оптимизация: используем квадрат длины, чтобы не считать корень 8 раз за кадр
 
-            // Центр шара попал в круг лузы?
-            // Для угловых луз (0, 2, 3, 5) используем больший радиус detection
             float effectiveRadius = pockets[p].radius;
+            float captureDistSq = effectiveRadius * effectiveRadius;
 
-            if (distance <= effectiveRadius*1.25f) {
+            if (distSq <= captureDistSq) {
                 if (i == 0) {
-                    // Белый шар: телепортируем на начальную позицию
+                    // Белый шар
                     balls[i].speed = vec(0, 0);
                     balls[i].position = whiteBallInitialPosition;
                 } else {
                     balls[i].isPocketed = true;
                     balls[i].speed = vec(0, 0);
-                    balls[i].position = vec(-100, -100); // Убираем за экран
+                    balls[i].position = vec(-1000, -1000); 
                 }
-                break;
+                break; 
             }
         }
     }
@@ -211,6 +179,9 @@ void Game::resetGame() {
     // Сбрасываем кий
     cue->force = 0.0f;
     cue->isActive = true;
+
+    // Устанавливаем флаг окончания игры
+    isGameEnd = true;
 }
 
 void Game::checkBoundaries() {
@@ -244,9 +215,8 @@ void Game::checkBoundaries() {
         }
     }
 }
-void Game::checkCollisions() {
-    // Внутренняя проверка столкновений
-}
+
+
 
 void Game::updateBallCollisions() {
     for (int i = 0; i < BALLS_COUNT; i++) {
@@ -375,33 +345,46 @@ void Game::update() {
 
 void Game::update(int steps) {
     if (!isMoving) return;
+    
     const int SUB_STEPS = 8;
     float subDt = 1.0f / SUB_STEPS; 
 
     for (int s = 0; s < SUB_STEPS; s++) {
-        // двигаем шары
         for (int i = 0; i < BALLS_COUNT; i++) {
             if (!balls[i].isPocketed) {
                 balls[i].position += balls[i].speed * subDt;
             }
         }
-
-        // решаем столкновения, которые возникли после на под шагах 
+        
+        checkPockets();
         updateBallCollisions();
         checkBoundaries();
     }
 
-    // трение и проверка луз
     for (int i = 0; i < BALLS_COUNT; i++) {
         calculateBallMovement(balls[i]);
     }
-    checkPockets();
 
     isMoving = false;
     for (int i = 0; i < BALLS_COUNT; i++) {
-        if (balls[i].speed.lengthSq() > 0.001f) {
+        if (!balls[i].isPocketed && balls[i].speed.lengthSq() > 0.001f) {
             isMoving = true;
             break;
         }
+    }
+
+    // Check if game should end (all balls except white are pocketed)
+    isGameEnd = true;
+    for (int i = 1; i < BALLS_COUNT; i++) {
+        if (!balls[i].isPocketed) {
+            isGameEnd = false;
+            break;
+        }
+    }
+
+    // If game ended, reset
+    if (isGameEnd) {
+        resetGame();
+        isGameEnd = false; // Reset the flag after game reset
     }
 }

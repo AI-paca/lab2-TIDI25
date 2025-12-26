@@ -1,6 +1,7 @@
-#pragma once
+#ifndef VEC_H
+#define VEC_H
+
 #include <cmath>
-#include <iostream>
 
 struct vec { // вектор
     float x, y;
@@ -37,3 +38,4 @@ struct vec { // вектор
 inline vec operator*(float scalar, const vec& vec) { //inline позволят определить функцию в .h
     return vec * scalar;
 }
+#endif // VEC_H

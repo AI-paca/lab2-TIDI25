@@ -1,7 +1,6 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <vector>
 #include <memory>
 #include "GameObj.h"
 
@@ -16,7 +15,7 @@ public:
     Game(int animationSteps, int left, int top, int right, int bottom);
 
     // Основные методы
-    void resetGame();     
+    void resetGame();
     void update();
     void update(int steps);
 
@@ -31,6 +30,7 @@ public:
 
     int getBallsCount() const { return BALLS_COUNT; }
     int getPocketsCount() const { return POCKETS_COUNT; }
+    bool getIsGameEnd() const { return isGameEnd; }
 
 private:
     static constexpr float gravity = 9.81f; 
@@ -43,8 +43,10 @@ private:
 
     float time;
     bool isMoving;
+    bool isGameEnd;
     vec whiteBallInitialPosition;
 
+    void initialize(int steps, float left, float top, float right, float bottom);
     void initBalls();
     void initPockets();
     

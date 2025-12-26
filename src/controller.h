@@ -21,11 +21,13 @@ public:
 
     void aimCue(int mouseX, int mouseY) override;
     void shootCue() override;
+    void resetGame() override;
 
     std::vector<GameObj::Ball> getBalls() const override;
     std::vector<GameObj::Pocket> getPockets() const override;
     GameObj::Cue getCue() const override;
     GameObj::Table getTable() const override;
+    bool isGameEnd() const override;
 };
 
 #endif // CONTROLLER_H

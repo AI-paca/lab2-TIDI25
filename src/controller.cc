@@ -38,6 +38,10 @@ void GameController::shootCue() {
     if (game) game->shoot();
 }
 
+void GameController::resetGame() {
+    if (game) game->resetGame();
+}
+
 std::vector<GameObj::Ball> GameController::getBalls() const {
     if (!game) return {};
     const auto* ballsPtr = game->getBalls();
@@ -67,6 +71,11 @@ GameObj::Cue GameController::getCue() const {
 GameObj::Table GameController::getTable() const {
     if (!game) return {};
     return *(game->getTable());
+}
+
+bool GameController::isGameEnd() const {
+    if (!game) return false;
+    return game->getIsGameEnd();
 }
 
 // ф-ии для создания контроллера

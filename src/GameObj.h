@@ -1,7 +1,6 @@
 #ifndef GAMEOBJ_H
 #define GAMEOBJ_H
 
-#include <vector>
 #include "vec.h"
 
 namespace GameObj {
@@ -10,7 +9,7 @@ namespace GameObj {
     struct Ball {
         vec position; // позиция/центр шара {x, y}
         vec speed; // скорость шара {vx, vy}
-        int radius;
+        float radius;
         Color color; //цвет шара
         bool isPocketed = false; // флаг, что шар забит в лузу
     };

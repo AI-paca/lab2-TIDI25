@@ -13,11 +13,13 @@ public:
 
     virtual void aimCue(int mouseX, int mouseY) = 0;
     virtual void shootCue() = 0;
+    virtual void resetGame() = 0;
 
     virtual std::vector<GameObj::Ball> getBalls() const = 0;
     virtual std::vector<GameObj::Pocket> getPockets() const = 0;
     virtual GameObj::Cue getCue() const = 0;
     virtual GameObj::Table getTable() const = 0;
+    virtual bool isGameEnd() const = 0;
 };
 
 // ф-ии для создания контроллера

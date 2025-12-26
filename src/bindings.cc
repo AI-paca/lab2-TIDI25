@@ -71,10 +71,12 @@ PYBIND11_MODULE(pool_game, m) {
         .def("update", &IGameController::update)
         .def("aim_cue", &IGameController::aimCue)
         .def("shoot_cue", &IGameController::shootCue)
+        .def("reset_game", &IGameController::resetGame)
         .def("get_balls", &IGameController::getBalls)
         .def("get_pockets", &IGameController::getPockets)
         .def("get_cue", &IGameController::getCue)
-        .def("get_table", &IGameController::getTable);
+        .def("get_table", &IGameController::getTable)
+        .def("is_game_end", &IGameController::isGameEnd);
 
     // 4. ФАБРИЧНЫЕ ФУНКЦИИ (3 перегрузки)
     // Pybind11 автоматически выберет нужную по количеству аргументов
