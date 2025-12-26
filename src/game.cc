@@ -171,9 +171,8 @@ void Game::checkPockets() {
         if (balls[i].isPocketed) continue; // Пропускаем уже забитые
 
         for (int p = 0; p < POCKETS_COUNT; p++) {
-            float dx = balls[i].position.x - pockets[p].position.x;
-            float dy = balls[i].position.y - pockets[p].position.y;
-            float distance = std::sqrt(dx * dx + dy * dy);
+            vec delta = balls[i].position - pockets[p].position;
+            float distance = delta.length();
 
             // Центр шара попал в круг лузы?
             // Для угловых луз (0, 2, 3, 5) используем больший радиус detection
@@ -257,9 +256,8 @@ void Game::updateBallCollisions() {
                 GameObj::Ball& ballB = balls[j];
 
                 // Вектор между центрами
-                float dx = ballB.position.x - ballA.position.x;
-                float dy = ballB.position.y - ballA.position.y;
-                float distSq = dx * dx + dy * dy;
+                vec delta = ballB.position - ballA.position;
+                float distSq = delta.lengthSq();
 
                 float minDist = ballA.radius + ballB.radius;
                 float minDistSq = minDist * minDist;
@@ -269,27 +267,23 @@ void Game::updateBallCollisions() {
                     continue;
                 }
 
-                float distance = std::sqrt(distSq);
+                float distance = delta.length();
                 hadCollision = true;
 
                 // нормаль
-                float nx = dx / distance;
-                float ny = dy / distance;
+                vec normal = delta / distance;
 
                 float overlap = minDist - distance;
                 float separation = (overlap / 2.0f) + 0.001f; // небольшой зазор во избежание залипания
 
-                ballA.position.x  -= separation * nx;
-                ballA.position.y -= separation * ny;
-                ballB.position.x  += separation * nx;
-                ballB.position.y += separation * ny;
+                ballA.position = ballA.position - normal * separation;
+                ballB.position = ballB.position + normal * separation;
 
                 // относительная скорость
-                float vRelX = ballA.speed.x - ballB.speed.x;
-                float vRelY = ballA.speed.y - ballB.speed.y;
+                vec vRel = ballA.speed - ballB.speed;
 
                 // проекция относительной скорости на нормаль
-                float vn = vRelX * nx + vRelY * ny;
+                float vn = vRel.dot(normal);
 
                 // если шары уже расходятся — не меняем скорости
                 if (vn <= 0.0f) {
@@ -297,10 +291,8 @@ void Game::updateBallCollisions() {
                 }
 
                 // обмен компонентами вдоль нормали
-                ballA.speed.x  -= vn * nx;
-                ballA.speed.y -= vn * ny;
-                ballB.speed.x  += vn * nx;
-                ballB.speed.y += vn * ny;
+                ballA.speed = ballA.speed - normal * vn;
+                ballB.speed = ballB.speed + normal * vn;
             }
         }
 
@@ -316,59 +308,28 @@ void Game::calculateBallMovement(GameObj::Ball& ball){
     calculateBallMovement(ball, 1);
 }
 
-void Game::calculateBallMovement(GameObj::Ball& ball, int steps) { //торможение шара
-    
 
-    if (ball.speed.x == 0 && ball.speed.y == 0) {
-        return; // шар уже остановился
-    }
-
-    // F_тр = μ_k · m · g
-    // v(t) = v₀ – μ_k · g · t
-    float a = table->frictionCoefficient * gravity; // коэффициент замедления: a = μ_k · g
-    if (abs(ball.speed.x)  <= abs(a * steps )) {
-        ball.speed.x = 0;
-    }
-    else{ //v(t) = v₀ – a · t, но t=1, поэтому v(t) = v₀ – a; steps - количество пропущеных шагов анимации
-        ball.speed.x -= a * steps * sign(ball.speed.x); //добавляем знак, т.к. при отрицательной скорости шары ускорялись
-    }
-    if (abs(ball.speed.y)  <= abs(a * steps )) {
-        ball.speed.y = 0;
-    }
-    else{
-        ball.speed.y -= a * steps * sign(ball.speed.y);
+void Game::calculateBallMovement(GameObj::Ball& ball, int steps) {
+    if (ball.speed.lengthSq() < 0.001f) {
+        ball.speed = {0, 0};
+        return;
     }
 
-    ball.position = vec(ball.position.x + ball.speed.x, ball.position.y + ball.speed.y);
+    float speed = ball.speed.length();
+    float friction = table->frictionCoefficient * gravity * steps; 
+
+    float newSpeed = speed - friction;
+    if (newSpeed <= 0) {
+        ball.speed = {0, 0};
+        return;
+    }
+
+    // Сохраняем направление, меняем скорость
+    ball.speed = ball.speed * (newSpeed / speed);
+
+    // Двигаем шар
+    ball.position += ball.speed;
 }
-
-// void Game::calculateBallMovement(Ball& ball, int steps) { //gemini physics (выглядит спорно, но оставлю тут на случай если я захочу исправить проблемы с физикой, сейчас он их не исправит)
-//     if (ball.speed.first == 0 && ball.speed.second == 0) return;
-
-//     // 1. Считаем полную скорость (длину вектора)
-//     float speed = std::sqrt(ball.speed.first * ball.speed.first + ball.speed.second * ball.speed.second);
-    
-//     // 2. Считаем, сколько скорости отнимет трение
-//     float friction = table->frictionCoefficient * gravity * steps;
-
-//     // 3. Вычитаем трение
-//     float newSpeed = speed - friction;
-    
-//     // Если трение "съело" всю скорость — останавливаем
-//     if (newSpeed <= 0) {
-//         ball.speed = {0, 0};
-//         return;
-//     }
-
-//     // 4. Масштабируем вектор скорости (сохраняем направление!)
-//     float scale = newSpeed / speed;
-//     ball.speed.first *= scale;
-//     ball.speed.second *= scale;
-
-//     // 5. Двигаем шар
-//     ball.position.first += ball.speed.first;
-//     ball.position.second += ball.speed.second;
-// }
 
 int Game::sign(float x) {
     if (x > 0) return 1;
@@ -386,11 +347,11 @@ void Game::aimCue(int mouseX, int mouseY) {
     GameObj::Ball& whiteBall = balls[0];
 
     // куда ударит кий
-    float dx = whiteBall.position.x - mouseX;
-    float dy = whiteBall.position.y - mouseY;
+    vec mousePos(mouseX, mouseY);
+    vec delta = whiteBall.position - mousePos;
 
     // сила натяжения (через расстояние от мыши до шара)
-    float distance = std::sqrt(dx * dx + dy * dy);
+    float distance = delta.length();
 
     const float MAX_PULL_DISTANCE = 200.0f; 
     const float MAX_SHOT_SPEED = 50.0f;
@@ -401,19 +362,15 @@ void Game::aimCue(int mouseX, int mouseY) {
     }
 
     // куда полетит шар 
-    float dirX = 0.0f;
-    float dirY = 0.0f;
-    
+    vec direction;
     if (distance > 0.001f) {
-        dirX = dx / distance;
-        dirY = dy / distance;
+        direction = delta.normalized();
     } else {
         // Если мышь ровно в центре шара, направление по умолчанию (вправо)
-        dirX = 1.0f; 
-        dirY = 0.0f;
+        direction = vec(1.0f, 0.0f);
     }
 
-    cue->direction = vec(dirX, dirY);
+    cue->direction = direction;
     cue->force = (clampedDistance / MAX_PULL_DISTANCE) * MAX_SHOT_SPEED;
 
     // визуальная позиции кия
@@ -422,8 +379,7 @@ void Game::aimCue(int mouseX, int mouseY) {
     float visualOffsetFromBall = whiteBall.radius + 5.0f; // Отступ от края шара
 
     // Кий визуально "отъезжает" назад при натяжении
-    cue->position.x = whiteBall.position.x - dirX * (visualOffsetFromBall + clampedDistance);
-    cue->position.y = whiteBall.position.y - dirY * (visualOffsetFromBall + clampedDistance);
+    cue->position = whiteBall.position - direction * (visualOffsetFromBall + clampedDistance);
 }
 
 // удара (вызывается контроллер по клику мыши)
@@ -431,13 +387,12 @@ void Game::shoot() {
     if (isMoving || !cue->isActive) return;
 
     // передать импульс от кия к шару
-    balls[0].speed.x = cue->direction.x * cue->force;
-    balls[0].speed.y = cue->direction.y * cue->force;
+    balls[0].speed = cue->direction * cue->force;
 
     if (std::abs(cue->force) > 0.1f) {
         isMoving = true;
-        cue->isActive = false; 
-        cue->force = 0;  
+        cue->isActive = false;
+        cue->force = 0;
     }
 }
 
@@ -459,7 +414,7 @@ void Game::update(int steps) {
         // Проверяем, остановились ли все шары
         bool anyBallMoving = false;
         for (int i = 0; i < BALLS_COUNT; i++) {
-            if (balls[i].speed.x != 0 || balls[i].speed.y != 0) {
+            if (balls[i].speed.lengthSq() > 0.0001f) {
                 anyBallMoving = true;
                 break;
             }
