@@ -1,0 +1,17 @@
+services:
+  pool-game:
+    build:
+      context: .
+    container_name: pool-game
+    restart: unless-stopped
+    environment:
+      VNC_PASSWORD: ${VNC_PASSWORD:-pool}
+      VNC_GEOMETRY: ${VNC_GEOMETRY:-1024x768}
+      VNC_DEPTH: ${VNC_DEPTH:-24}
+      DISPLAY_NUM: ${DISPLAY_NUM:-1}
+      VNC_PORT: ${VNC_PORT:-5901}
+      NOVNC_PORT: ${NOVNC_PORT:-6080}
+    ports:
+      - "127.0.0.1:6080:6080"
+      - "127.0.0.1:5901:5901"
+    shm_size: "256m"

@@ -1,0 +1,17 @@
+.git
+.github
+venv
+__pycache__
+**/__pycache__
+*.pyc
+.cache
+build
+*.o
+*.so
+*.pyd
+*.dll
+*.dylib
+controller.o
+*.log
+*.tmp
+diagrams/*.drawio

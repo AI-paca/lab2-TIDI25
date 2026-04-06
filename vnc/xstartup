@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+
+if [ -r "$HOME/.Xresources" ]; then
+  xrdb "$HOME/.Xresources"
+fi
+
+xsetroot -solid "#2b2b2b" || true
+
+# Keep the VNC session alive by running a lightweight WM.
+exec fluxbox

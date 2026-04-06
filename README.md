@@ -17,6 +17,19 @@ python main.py
 ```
 
 ---
+### Запуск в Docker (кроссплатформенно)
+GUI (pygame) запускается внутри контейнера и отдаётся через noVNC в браузер.
+
+```bash
+docker compose up --build
+```
+
+Откройте в браузере: `http://localhost:6080/vnc.html`  
+Пароль по умолчанию: `pool` (можно переопределить `VNC_PASSWORD`).
+
+Опционально можно подключиться VNC-клиентом к `localhost:5901`.
+
+---
 project architecture:
 ![architecture.png](diagrams/architecture.png)
 
@@ -41,10 +54,3 @@ project architecture:
 Связка C++ и Python | Логика игры пишется на C++, код компилируется в динамическую библиотеку (.so файл) |  ✅
 Pybind11 Wrapper | Используется библиотека pybind11 для создания обертки (wrapper) |  ✅
 Документация | Нарисовать схему архитектуры классов (например, в draw.io) |  ✅
-
----
-P.s. если я хочу красивые галочки, то я найду красивые галочки. (галочки нагло похищены у [yusufklncc](https://github.com/yusufklncc))  
-
----
-old draft of the project architecture:
-![lab2.png](diagrams/lab2.png)
