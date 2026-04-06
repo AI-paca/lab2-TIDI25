@@ -41,6 +41,29 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption(TITLE)
 clock = pygame.time.Clock()
 font = pygame.font.Font(None, 24)
+aim_surface = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+
+def draw_dashed_line(surface, color, start_pos, end_pos, width=2, dash_length=10, gap_length=7):
+    x1, y1 = start_pos
+    x2, y2 = end_pos
+    dx = x2 - x1
+    dy = y2 - y1
+    length = (dx * dx + dy * dy) ** 0.5
+    if length <= 0.001:
+        return
+
+    dir_x = dx / length
+    dir_y = dy / length
+    step = dash_length + gap_length
+    distance = 0.0
+    while distance < length:
+        seg_start_x = x1 + dir_x * distance
+        seg_start_y = y1 + dir_y * distance
+        seg_end_dist = min(distance + dash_length, length)
+        seg_end_x = x1 + dir_x * seg_end_dist
+        seg_end_y = y1 + dir_y * seg_end_dist
+        pygame.draw.line(surface, color, (seg_start_x, seg_start_y), (seg_end_x, seg_end_y), width)
+        distance += step
 
 # Дефолтные настройки внутри C++
 # controller = pool_game.create_controller(TARGET_FPS)
@@ -128,31 +151,21 @@ while running:
         # Блик
         pygame.draw.circle(screen, (255, 255, 255), (int(bx - b.radius*0.3), int(by - b.radius*0.3)), int(b.radius*0.2))
 
-    # === ТВОЙ ЛЮБИМЫЙ СТАРЫЙ КИЙ ===
+    # === ТВОЙ ЛЮБИМЫЙ СТАРЫЙ КИЙ (FIXED EDITION) ===
     if cue.is_active:
         tip_x, tip_y = cue.position
         dir_x, dir_y = cue.direction
         CUE_LENGTH = 200
-
-        # Ручка кия
-        handle_x = tip_x - dir_x * CUE_LENGTH
-        handle_y = tip_y - dir_y * CUE_LENGTH
-
-        # Палка
-        pygame.draw.line(screen, (139, 69, 19), (tip_x, tip_y), (handle_x, handle_y), 8)
-        # Наклейка
-        pygame.draw.circle(screen, (200, 200, 200), (int(tip_x), int(tip_y)), 4)
-
-# === ТВОЙ ЛЮБИМЫЙ СТАРЫЙ КИЙ (FIXED EDITION) ===
-    if cue.is_active:
-        tip_x, tip_y = cue.position
-        dir_x, dir_y = cue.direction
-        CUE_LENGTH = 200
+        CUE_BACK_EXTRA = 35
 
         # 1. Ручка кия (Рисуем от носика назад)
         handle_x = tip_x - dir_x * CUE_LENGTH
         handle_y = tip_y - dir_y * CUE_LENGTH
+        handle_black_x = tip_x - dir_x * (CUE_LENGTH + CUE_BACK_EXTRA)
+        handle_black_y = tip_y - dir_y * (CUE_LENGTH + CUE_BACK_EXTRA)
 
+        # 2 кия: чёрный (длиннее) под коричневым
+        pygame.draw.line(screen, (15, 15, 15), (tip_x, tip_y), (handle_black_x, handle_black_y), 10)
         # Палка
         pygame.draw.line(screen, (139, 69, 19), (tip_x, tip_y), (handle_x, handle_y), 8)
         # Наклейка
@@ -168,8 +181,18 @@ while running:
             end_aim_x = wb_x + dir_x * aim_length
             end_aim_y = wb_y + dir_y * aim_length
             
-            # Рисуем линию (белая, толщина 2 для видимости)
-            pygame.draw.line(screen, (255, 255, 255), (wb_x, wb_y), (end_aim_x, end_aim_y), 2)
+            # Бледная пунктирная линия прицеливания
+            aim_surface.fill((0, 0, 0, 0))
+            draw_dashed_line(
+                aim_surface,
+                (255, 255, 255, 120),
+                (wb_x, wb_y),
+                (end_aim_x, end_aim_y),
+                width=2,
+                dash_length=10,
+                gap_length=7,
+            )
+            screen.blit(aim_surface, (0, 0))
         # Debug info
         cue_info = f"Power: {cue.force:.1f}"
         cue_surface = font.render(cue_info, True, (255, 255, 255))
