@@ -17,17 +17,14 @@ python main.py
 ```
 
 ---
-### Запуск в Docker (кроссплатформенно)
-GUI (pygame) запускается внутри контейнера и отдаётся через noVNC в браузер.
+### Запуск в Docker
+GUI (pygame) запускается внутри контейнера через noVNC в браузере.
 
 ```bash
 docker compose up --build
 ```
 
-Откройте в браузере: `http://localhost:6080/vnc.html`  
-Пароль по умолчанию: `pool` (можно переопределить `VNC_PASSWORD`).
-
-Опционально можно подключиться VNC-клиентом к `localhost:5901`.
+В браузере: `http://localhost:6080/vnc.html`  (пароль по умолчанию: `pool`)
 
 ---
 project architecture:
